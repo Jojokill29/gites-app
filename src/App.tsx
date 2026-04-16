@@ -1,40 +1,63 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
+import { useGites } from './hooks/useGites'
 import LoginPage from './pages/LoginPage'
+import CalendarPage from './pages/CalendarPage'
+import FinancesPage from './pages/FinancesPage'
+import InvoicesPage from './pages/InvoicesPage'
+import ExportPage from './pages/ExportPage'
 import ProtectedRoute from './components/layout/ProtectedRoute'
+import TopBar from './components/layout/TopBar'
+import TabBar from './components/layout/TabBar'
+
+function AppLayout() {
+  const { user, signOut } = useAuth()
+  const { gites, loading: gitesLoading, error: gitesError } = useGites()
+
+  // Redirect / to first gite's calendar
+  const firstGiteId = gites.length > 0 ? gites[0].id : null
+
+  return (
+    <div className="min-h-screen bg-bg">
+      <TopBar email={user?.email ?? ''} onLogout={signOut} />
+      <TabBar gites={gites} loading={gitesLoading} error={gitesError} />
+      <Routes>
+        <Route
+          path="/"
+          element={
+            firstGiteId ? (
+              <Navigate to={`/calendar/${firstGiteId}`} replace />
+            ) : (
+              // Still loading or error — show nothing, TabBar handles the state
+              <div />
+            )
+          }
+        />
+        <Route path="/calendar/:giteId" element={<CalendarPage gites={gites} />} />
+        <Route path="/finances" element={<FinancesPage />} />
+        <Route path="/invoices" element={<InvoicesPage />} />
+        <Route path="/export" element={<ExportPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
+  )
+}
 
 function App() {
-  const { user, loading, signIn, signOut } = useAuth()
+  const { user, loading, signIn } = useAuth()
 
   return (
     <BrowserRouter>
       <Routes>
         <Route
           path="/login"
-          element={
-            user ? <Navigate to="/" replace /> : <LoginPage onLogin={signIn} />
-          }
+          element={user ? <Navigate to="/" replace /> : <LoginPage onLogin={signIn} />}
         />
         <Route
           path="/*"
           element={
             <ProtectedRoute user={user} loading={loading}>
-              <div className="min-h-screen bg-gray-50 p-4">
-                <div className="flex items-center justify-between mb-8">
-                  <h1 className="text-2xl font-bold text-gray-800">
-                    Gestion des gîtes
-                  </h1>
-                  <button
-                    onClick={signOut}
-                    className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-100"
-                  >
-                    Se déconnecter
-                  </button>
-                </div>
-                <p className="text-gray-600">
-                  Connecté en tant que {user?.email}
-                </p>
-              </div>
+              <AppLayout />
             </ProtectedRoute>
           }
         />

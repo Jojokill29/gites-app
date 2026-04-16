@@ -38,7 +38,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     try {
       await onLogin(data.email, data.password)
     } catch {
-      setError(LABELS.loginError)
+      setError(LABELS.errorLogin)
     } finally {
       setSubmitting(false)
     }
