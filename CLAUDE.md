@@ -70,11 +70,15 @@ if (error) {
 
 Un `try/catch` seul ne suffit pas car le SDK ne leve pas d'exception.
 
-### Les types se regenerent apres chaque migration
+### Regeneration des types
+
+Toujours utiliser le script npm securise, jamais la commande brute :
 
 ```bash
-npx supabase gen types typescript --linked > src/types/database.ts
+npm run generate:types
 ```
+
+Ce script genere les types puis les valide avec `tsc`. Si le script echoue, ouvrir `src/types/database.ts` et verifier que la derniere ligne est `} as const` -- supprimer tout ce qui vient apres.
 
 Ne jamais ecrire de types a la main pour les tables. Toujours s'appuyer sur les types generes.
 
