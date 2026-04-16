@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestion des Gites</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #F8F7F4;
+    --surface: #FFFFFF;
+    --surface-alt: #F1EFE8;
+    --text: #2C2C2A;
+    --text-secondary: #888780;
+    --text-tertiary: #B4B2A9;
+    --border: rgba(0,0,0,0.08);
+    --border-hover: rgba(0,0,0,0.15);
+    --green: #5DCAA5;
+    --green-bg: #E1F5EE;
+    --green-text: #085041;
+    --orange: #EF9F27;
+    --orange-bg: #FAEEDA;
+    --orange-text: #854F0B;
+    --red: #E24B4A;
+    --red-bg: #FCEBEB;
+    --red-text: #791F1F;
+    --blue: #378ADD;
+    --blue-bg: #E6F1FB;
+    --blue-text: #0C447C;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--blue-bg);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 11px; color: var(--blue-text); flex-shrink: 0;
+  }
+
+  .topbar-title { font-weight: 600; font-size: 15px; }
+  .topbar-sub { font-size: 11px; color: var(--text-secondary); }
+
+  .tabs-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs-bar::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    padding: 14px 18px; font-size: 13px; font-family: inherit; font-weight: 400;
+    color: var(--text-secondary); background: none; border: none;
+    border-bottom: 2px solid transparent; cursor: pointer;
+    white-space: nowrap; transition: color 0.15s; flex-shrink: 0;
+  }
+  .tab-btn.active { color: var(--text); font-weight: 500; border-bottom-color: var(--text); }
+  .tab-btn:hover { color: var(--text); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .content-area { max-width: 960px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 14px; font-size: 13px; font-family: inherit; font-weight: 500;
+    border: 1px solid var(--border-hover); border-radius: var(--radius);
+    background: var(--surface); color: var(--text); cursor: pointer;
+    transition: background 0.15s; white-space: nowrap;
+  }
+  .btn:hover { background: var(--surface-alt); }
+  .btn:active { transform: scale(0.98); }
+  .btn-full { width: 100%; }
+  .btn-danger { border-color: var(--red); color: var(--red-text); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+  .cal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+  }
+  .month-nav { display: flex; align-items: center; gap: 10px; }
+  .month-label { font-family: 'Fraunces', serif; font-weight: 600; font-size: 20px; min-width: 160px; text-align: center; }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-secondary); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+  .cal-grid { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+
+  .cal-weekdays {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    border-bottom: 1px solid var(--border); background: var(--surface-alt);
+  }
+  .cal-weekday {
+    padding: 10px 4px; font-size: 11px; font-weight: 500;
+    color: var(--text-secondary); text-align: center;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); }
+
+  .cal-day {
+    min-height: 72px; padding: 6px;
+    border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    position: relative; cursor: pointer; transition: background 0.1s;
+  }
+  .cal-day:nth-child(7n) { border-right: none; }
+  .cal-day:hover { background: var(--surface-alt); }
+  .cal-day.empty { background: var(--surface-alt); opacity: 0.4; cursor: default; }
+  .cal-day.empty:hover { background: var(--surface-alt); }
+  .cal-day.today { background: var(--blue-bg); }
+  .cal-day-num { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; }
+  .cal-day.today .cal-day-num { color: var(--blue-text); font-weight: 600; }
+
+  .cal-event {
+    display: block; padding: 2px 6px; border-radius: 4px;
+    font-size: 10px; font-weight: 500; margin-bottom: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+  }
+  .cal-event.green { background: var(--green); color: var(--green-text); }
+  .cal-event.orange { background: var(--orange); color: var(--orange-text); }
+  .cal-event.red { background: var(--red); color: var(--red-text); }
+  .cal-event.start { border-radius: 4px 0 0 4px; margin-right: -6px; }
+  .cal-event.middle { border-radius: 0; margin-left: -6px; margin-right: -6px; }
+  .cal-event.end { border-radius: 0 4px 4px 0; margin-left: -6px; }
+
+  .cal-day.overlap { min-height: 90px; }
+  .cal-day.overlap .cal-event { margin-left: 0; margin-right: 0; border-radius: 4px; }
+  .overlap-label { font-size: 9px; color: var(--text-tertiary); margin-top: 1px; text-align: center; letter-spacing: 0.3px; }
+
+  .modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35); z-index: 200;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface); border-radius: var(--radius-lg);
+    width: 100%; max-width: 460px; max-height: 90vh;
+    overflow-y: auto; padding: 24px; position: relative;
+  }
+
+  .modal-close {
+    position: absolute; top: 16px; right: 16px;
+    width: 28px; height: 28px; border-radius: 50%; border: none;
+    background: var(--surface-alt); font-size: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; color: var(--text-secondary);
+  }
+
+  .detail-header { margin-bottom: 16px; padding-right: 36px; }
+  .detail-title { font-weight: 600; font-size: 18px; }
+  .detail-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+  .status-badge {
+    display: inline-flex; align-items: center; padding: 4px 12px;
+    border-radius: var(--radius); font-size: 12px; font-weight: 500; margin-top: 8px;
+  }
+  .status-green { background: var(--green-bg); color: var(--green-text); }
+  .status-orange { background: var(--orange-bg); color: var(--orange-text); }
+  .status-red { background: var(--red-bg); color: var(--red-text); }
+
+  .info-section { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 12px; }
+  .info-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px; }
+  .info-label { color: var(--text-secondary); }
+  .info-value { font-weight: 500; text-align: right; }
+  .info-value.danger { color: var(--red); }
+
+  .notes-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .notes-text { font-size: 14px; line-height: 1.6; }
+
+  .file-row { display: flex; align-items: center; gap: 8px; }
+  .file-name {
+    flex: 1; background: var(--surface-alt); border-radius: var(--radius);
+    padding: 8px 12px; font-size: 13px; display: flex; align-items: center; gap: 8px;
+  }
+
+  .actions-row { display: flex; gap: 8px; margin-top: 20px; }
+  .actions-row .btn { flex: 1; }
+
+  .metrics-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px; margin-bottom: 24px;
+  }
+  .metric-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 16px;
+  }
+  .metric-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .metric-value { font-size: 24px; font-weight: 600; }
+
+  .finance-table {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .finance-row {
+    display: grid; grid-template-columns: 1.3fr 1fr 1fr;
+    padding: 12px 16px; font-size: 14px; border-bottom: 1px solid var(--border);
+  }
+  .finance-row:last-child { border-bottom: none; }
+  .finance-row.header-row {
+    font-weight: 500; color: var(--text-secondary); font-size: 12px;
+    background: var(--surface-alt); text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .finance-row.highlight { background: var(--blue-bg); }
+  .finance-cell-right { text-align: right; }
+
+  .factures-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+  }
+  .factures-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px; margin-bottom: 16px;
+  }
+  .facture-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden; cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+  }
+  .facture-card:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+  .facture-card.add-card {
+    border-style: dashed; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; min-height: 168px;
+  }
+  .facture-thumb {
+    height: 100px; background: var(--surface-alt);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .facture-info { padding: 10px 12px; }
+  .facture-name { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .facture-date { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  .plus-icon {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--surface-alt);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 6px; font-size: 20px; color: var(--text-secondary);
+  }
+  .add-label { font-size: 12px; color: var(--text-secondary); }
+  .helper-text { font-size: 12px; color: var(--text-tertiary); }
+
+  .export-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 24px; margin-bottom: 16px;
+  }
+  .export-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .export-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6; }
+
+  @media (max-width: 600px) {
+    .cal-day { min-height: 56px; padding: 4px; }
+    .cal-day-num { font-size: 11px; }
+    .cal-event { font-size: 9px; padding: 2px 4px; }
+    .cal-weekday { font-size: 10px; padding: 8px 2px; }
+    .month-label { font-size: 17px; min-width: 130px; }
+    .modal { padding: 18px; }
+    .finance-row { font-size: 12px; padding: 10px 12px; grid-template-columns: 1fr 0.8fr 0.8fr; }
+    .actions-row { flex-direction: column; }
+    .topbar { padding: 10px 14px; }
+    .content-area { padding: 16px 12px 60px; }
+    .tab-btn { padding: 12px 14px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="avatar">QC</div>
+    <div>
+      <div class="topbar-title">Gestion des gites</div>
+      <div class="topbar-sub">Connecte : Coltan</div>
+    </div>
+  </div>
+  <button class="btn btn-sm">Deconnexion</button>
+</div>
+
+<div class="tabs-bar">
+  <button class="tab-btn active" onclick="switchTab('grand')">Grand gite (22p)</button>
+  <button class="tab-btn" onclick="switchTab('petit')">Petit gite (15p)</button>
+  <button class="tab-btn" onclick="switchTab('finances')">Finances</button>
+  <button class="tab-btn" onclick="switchTab('factures')">Factures</button>
+  <button class="tab-btn" onclick="switchTab('export')">Export</button>
+</div>
+
+<!-- GRAND GITE -->
+<div class="tab-content active" id="tab-grand">
+  <div class="content-area">
+    <div class="cal-header">
+      <div class="month-nav">
+        <button class="btn btn-sm">&#8249;</button>
+        <span class="month-label">Juillet 2026</span>
+        <button class="btn btn-sm">&#8250;</button>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red);"></div> Contrat en attente</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--orange);"></div> Acompte en attente</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green);"></div> Acompte paye</div>
+      </div>
+    </div>
+    <div class="cal-grid">
+      <div class="cal-weekdays">
+        <div class="cal-weekday">Lun</div><div class="cal-weekday">Mar</div><div class="cal-weekday">Mer</div><div class="cal-weekday">Jeu</div><div class="cal-weekday">Ven</div><div class="cal-weekday">Sam</div><div class="cal-weekday">Dim</div>
+      </div>
+      <div class="cal-days">
+        <div class="cal-day empty"></div><div class="cal-day empty"></div>
+        <div class="cal-day"><div class="cal-day-num">1</div><div class="cal-event green start" onclick="openModal('dupont')">Fam. Dupont</div></div>
+        <div class="cal-day"><div class="cal-day-num">2</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">3</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">4</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">5</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">6</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day overlap"><div class="cal-day-num">7</div><div class="cal-event green" onclick="openModal('dupont')" style="border-radius:4px;">Depart Dupont</div><div class="cal-event orange" onclick="openModal('leroy')" style="border-radius:4px;">Arrivee Leroy</div><div class="overlap-label">rotation</div></div>
+        <div class="cal-day"><div class="cal-day-num">8</div><div class="cal-event orange middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">9</div><div class="cal-event orange middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">10</div><div class="cal-event orange middle">&nbsp;</div></div>
+        <div class="cal-day today"><div class="cal-day-num">11</div><div class="cal-event orange middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">12</div><div class="cal-event orange middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">13</div><div class="cal-event orange end">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">14</div></div>
+        <div class="cal-day"><div class="cal-day-num">15</div></div>
+        <div class="cal-day"><div class="cal-day-num">16</div></div>
+        <div class="cal-day"><div class="cal-day-num">17</div></div>
+        <div class="cal-day"><div class="cal-day-num">18</div></div>
+        <div class="cal-day"><div class="cal-day-num">19</div></div>
+        <div class="cal-day"><div class="cal-day-num">20</div><div class="cal-event red start" onclick="openModal('martin')">Grp. Martin</div></div>
+        <div class="cal-day"><div class="cal-day-num">21</div><div class="cal-event red middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">22</div><div class="cal-event red middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">23</div><div class="cal-event red middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">24</div><div class="cal-event red middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">25</div><div class="cal-event red middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">26</div><div class="cal-event red middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">27</div><div class="cal-event red end">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">28</div></div>
+        <div class="cal-day"><div class="cal-day-num">29</div></div>
+        <div class="cal-day"><div class="cal-day-num">30</div></div>
+        <div class="cal-day"><div class="cal-day-num">31</div></div>
+        <div class="cal-day empty"></div><div class="cal-day empty"></div>
+      </div>
+    </div>
+    <button class="btn btn-full" style="margin-top:16px;">+ Nouvelle reservation</button>
+  </div>
+</div>
+
+<!-- PETIT GITE -->
+<div class="tab-content" id="tab-petit">
+  <div class="content-area">
+    <div class="cal-header">
+      <div class="month-nav">
+        <button class="btn btn-sm">&#8249;</button>
+        <span class="month-label">Juillet 2026</span>
+        <button class="btn btn-sm">&#8250;</button>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red);"></div> Contrat en attente</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--orange);"></div> Acompte en attente</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green);"></div> Acompte paye</div>
+      </div>
+    </div>
+    <div class="cal-grid">
+      <div class="cal-weekdays">
+        <div class="cal-weekday">Lun</div><div class="cal-weekday">Mar</div><div class="cal-weekday">Mer</div><div class="cal-weekday">Jeu</div><div class="cal-weekday">Ven</div><div class="cal-weekday">Sam</div><div class="cal-weekday">Dim</div>
+      </div>
+      <div class="cal-days">
+        <div class="cal-day empty"></div><div class="cal-day empty"></div>
+        <div class="cal-day"><div class="cal-day-num">1</div></div>
+        <div class="cal-day"><div class="cal-day-num">2</div></div>
+        <div class="cal-day"><div class="cal-day-num">3</div></div>
+        <div class="cal-day"><div class="cal-day-num">4</div><div class="cal-event green start" onclick="openModal('bernard')">Fam. Bernard</div></div>
+        <div class="cal-day"><div class="cal-day-num">5</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">6</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">7</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">8</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">9</div><div class="cal-event green end">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">10</div></div>
+        <div class="cal-day today"><div class="cal-day-num">11</div></div>
+        <div class="cal-day"><div class="cal-day-num">12</div></div>
+        <div class="cal-day"><div class="cal-day-num">13</div></div>
+        <div class="cal-day"><div class="cal-day-num">14</div></div>
+        <div class="cal-day"><div class="cal-day-num">15</div></div>
+        <div class="cal-day"><div class="cal-day-num">16</div></div>
+        <div class="cal-day"><div class="cal-day-num">17</div></div>
+        <div class="cal-day"><div class="cal-day-num">18</div><div class="cal-event green start" onclick="openModal('sportive')">Assoc. Sportive</div></div>
+        <div class="cal-day"><div class="cal-day-num">19</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">20</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">21</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">22</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">23</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">24</div><div class="cal-event green middle">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">25</div><div class="cal-event green end">&nbsp;</div></div>
+        <div class="cal-day"><div class="cal-day-num">26</div></div>
+        <div class="cal-day"><div class="cal-day-num">27</div></div>
+        <div class="cal-day"><div class="cal-day-num">28</div></div>
+        <div class="cal-day"><div class="cal-day-num">29</div></div>
+        <div class="cal-day"><div class="cal-day-num">30</div></div>
+        <div class="cal-day"><div class="cal-day-num">31</div></div>
+        <div class="cal-day empty"></div><div class="cal-day empty"></div>
+      </div>
+    </div>
+    <button class="btn btn-full" style="margin-top:16px;">+ Nouvelle reservation</button>
+  </div>
+</div>
+
+<!-- FINANCES -->
+<div class="tab-content" id="tab-finances">
+  <div class="content-area">
+    <div class="month-nav" style="margin-bottom:24px;">
+      <button class="btn btn-sm">&#8249;</button>
+      <span class="month-label">2026</span>
+      <button class="btn btn-sm">&#8250;</button>
+    </div>
+    <div class="metrics-grid">
+      <div class="metric-card"><div class="metric-label">CA annuel</div><div class="metric-value">42 800 EUR</div></div>
+      <div class="metric-card"><div class="metric-label">Taxes de sejour</div><div class="metric-value">1 540 EUR</div></div>
+      <div class="metric-card"><div class="metric-label">Reservations</div><div class="metric-value">28</div></div>
+    </div>
+    <div class="finance-table">
+      <div class="finance-row header-row"><span>Trimestre</span><span class="finance-cell-right">Chiffre d'affaires</span><span class="finance-cell-right">Taxes de sejour</span></div>
+      <div class="finance-row"><span>T1 -- jan a mars</span><span class="finance-cell-right">3 200 EUR</span><span class="finance-cell-right">180 EUR</span></div>
+      <div class="finance-row"><span>T2 -- avr a juin</span><span class="finance-cell-right">12 400 EUR</span><span class="finance-cell-right">460 EUR</span></div>
+      <div class="finance-row highlight"><span style="font-weight:500;">T3 -- juil a sept</span><span class="finance-cell-right" style="font-weight:500;">21 600 EUR</span><span class="finance-cell-right" style="font-weight:500;">720 EUR</span></div>
+      <div class="finance-row"><span>T4 -- oct a dec</span><span class="finance-cell-right">5 600 EUR</span><span class="finance-cell-right">180 EUR</span></div>
+    </div>
+    <button class="btn btn-full" style="margin-top:16px;">+ Ajouter une entree</button>
+  </div>
+</div>
+
+<!-- FACTURES -->
+<div class="tab-content" id="tab-factures">
+  <div class="content-area">
+    <div class="factures-header">
+      <div class="month-nav"><button class="btn btn-sm">&#8249;</button><span class="month-label">T3 2026</span><button class="btn btn-sm">&#8250;</button></div>
+      <button class="btn">Telecharger ZIP trimestre</button>
+    </div>
+    <div class="factures-grid">
+      <div class="facture-card"><div class="facture-thumb"><svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="7" y="3" width="22" height="30" rx="2" stroke="#B4B2A9" stroke-width="1.2"/><line x1="11" y1="12" x2="25" y2="12" stroke="#D3D1C7" stroke-width="1"/><line x1="11" y1="16" x2="25" y2="16" stroke="#D3D1C7" stroke-width="1"/><line x1="11" y1="20" x2="20" y2="20" stroke="#D3D1C7" stroke-width="1"/></svg></div><div class="facture-info"><div class="facture-name">facture_edf_juil.jpg</div><div class="facture-date">3 juillet 2026</div></div></div>
+      <div class="facture-card"><div class="facture-thumb"><svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="7" y="3" width="22" height="30" rx="2" stroke="#B4B2A9" stroke-width="1.2"/><line x1="11" y1="12" x2="25" y2="12" stroke="#D3D1C7" stroke-width="1"/><line x1="11" y1="16" x2="25" y2="16" stroke="#D3D1C7" stroke-width="1"/><line x1="11" y1="20" x2="20" y2="20" stroke="#D3D1C7" stroke-width="1"/></svg></div><div class="facture-info"><div class="facture-name">facture_plombier.pdf</div><div class="facture-date">15 juillet 2026</div></div></div>
+      <div class="facture-card"><div class="facture-thumb"><svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="7" y="3" width="22" height="30" rx="2" stroke="#B4B2A9" stroke-width="1.2"/><line x1="11" y1="12" x2="25" y2="12" stroke="#D3D1C7" stroke-width="1"/><line x1="11" y1="16" x2="25" y2="16" stroke="#D3D1C7" stroke-width="1"/><line x1="11" y1="20" x2="20" y2="20" stroke="#D3D1C7" stroke-width="1"/></svg></div><div class="facture-info"><div class="facture-name">assurance_aug.jpg</div><div class="facture-date">2 aout 2026</div></div></div>
+      <div class="facture-card"><div class="facture-thumb"><svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="7" y="3" width="22" height="30" rx="2" stroke="#B4B2A9" stroke-width="1.2"/><line x1="11" y1="12" x2="25" y2="12" stroke="#D3D1C7" stroke-width="1"/><line x1="11" y1="16" x2="25" y2="16" stroke="#D3D1C7" stroke-width="1"/><line x1="11" y1="20" x2="20" y2="20" stroke="#D3D1C7" stroke-width="1"/></svg></div><div class="facture-info"><div class="facture-name">entretien_piscine.pdf</div><div class="facture-date">8 aout 2026</div></div></div>
+      <div class="facture-card"><div class="facture-thumb"><svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="7" y="3" width="22" height="30" rx="2" stroke="#B4B2A9" stroke-width="1.2"/><line x1="11" y1="12" x2="25" y2="12" stroke="#D3D1C7" stroke-width="1"/><line x1="11" y1="16" x2="25" y2="16" stroke="#D3D1C7" stroke-width="1"/><line x1="11" y1="20" x2="20" y2="20" stroke="#D3D1C7" stroke-width="1"/></svg></div><div class="facture-info"><div class="facture-name">jardinier_sept.jpg</div><div class="facture-date">12 septembre 2026</div></div></div>
+      <div class="facture-card add-card"><div class="plus-icon">+</div><div class="add-label">Ajouter une facture</div></div>
+    </div>
+    <div class="helper-text">5 factures ce trimestre. Cliquer sur une facture pour l'agrandir ou la supprimer.</div>
+  </div>
+</div>
+
+<!-- EXPORT -->
+<div class="tab-content" id="tab-export">
+  <div class="content-area">
+    <div class="export-card">
+      <div class="export-title">Export complet des donnees</div>
+      <div class="export-desc">Telecharge une archive ZIP contenant toutes les reservations (CSV), toutes les entrees financieres (CSV), tous les contrats PDF et toutes les factures. C'est votre sauvegarde complete.</div>
+      <button class="btn">Telecharger l'archive ZIP</button>
+    </div>
+    <div class="export-card">
+      <div class="export-title">Export des reservations</div>
+      <div class="export-desc">Fichier CSV avec toutes les reservations, dates, montants et statuts. Ouvrable dans Excel ou Google Sheets.</div>
+      <button class="btn">Telecharger le CSV</button>
+    </div>
+    <div class="export-card">
+      <div class="export-title">Export des finances</div>
+      <div class="export-desc">Fichier CSV avec le chiffre d'affaires et les taxes de sejour par trimestre.</div>
+      <button class="btn">Telecharger le CSV</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">x</button>
+    <div class="detail-header">
+      <div class="detail-title" id="modal-title"></div>
+      <div class="detail-subtitle" id="modal-subtitle"></div>
+      <span class="status-badge" id="modal-badge"></span>
+    </div>
+    <div class="info-section">
+      <div class="info-row"><span class="info-label">Arrivee</span><span class="info-value" id="modal-start"></span></div>
+      <div class="info-row"><span class="info-label">Depart</span><span class="info-value" id="modal-end"></span></div>
+      <div class="info-row"><span class="info-label">Personnes</span><span class="info-value" id="modal-pers"></span></div>
+      <div class="info-row"><span class="info-label">Sets de draps</span><span class="info-value" id="modal-draps"></span></div>
+    </div>
+    <div class="info-section">
+      <div class="info-row"><span class="info-label">Montant total</span><span class="info-value" id="modal-total"></span></div>
+      <div class="info-row"><span class="info-label">Deja paye</span><span class="info-value" id="modal-paid"></span></div>
+      <div class="info-row"><span class="info-label">Reste a payer</span><span class="info-value" id="modal-remaining"></span></div>
+    </div>
+    <div class="info-section">
+      <div class="notes-label">Notes</div>
+      <div class="notes-text" id="modal-notes"></div>
+    </div>
+    <div class="info-section">
+      <div class="notes-label" style="margin-bottom:8px;">Contrat</div>
+      <div class="file-row">
+        <div class="file-name">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="1" width="10" height="14" rx="1" stroke="#888780" stroke-width="1"/><line x1="5" y1="5" x2="11" y2="5" stroke="#B4B2A9" stroke-width="1"/><line x1="5" y1="7.5" x2="11" y2="7.5" stroke="#B4B2A9" stroke-width="1"/><line x1="5" y1="10" x2="9" y2="10" stroke="#B4B2A9" stroke-width="1"/></svg>
+          <span id="modal-file"></span>
+        </div>
+        <button class="btn btn-sm">Voir</button>
+      </div>
+    </div>
+    <div class="actions-row">
+      <button class="btn">Modifier</button>
+      <button class="btn btn-danger">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(id) {
+  document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('tab-' + id).classList.add('active');
+  var tabs = ['grand','petit','finances','factures','export'];
+  document.querySelectorAll('.tab-btn')[tabs.indexOf(id)].classList.add('active');
+}
+
+var reservations = {
+  dupont: { title:'Fam. Dupont', subtitle:'Grand gite -- 22 personnes', badge:'Acompte paye', badgeClass:'status-green', start:'1 juillet 2026', end:'7 juillet 2026', pers:'20', draps:'15', total:'4 500 EUR', paid:'4 500 EUR', remaining:'0 EUR', danger:false, notes:'Famille avec enfants. Arrivee prevue vers 16h. Demande lit bebe.', file:'contrat_dupont_2026.pdf' },
+  leroy: { title:'Mariage Leroy', subtitle:'Grand gite -- 22 personnes', badge:'Acompte en attente', badgeClass:'status-orange', start:'7 juillet 2026', end:'13 juillet 2026', pers:'18', draps:'12', total:'3 200 EUR', paid:'0 EUR', remaining:'3 200 EUR', danger:true, notes:'Mariage le 12 juillet, besoin d\'un acces jardin des 8h. Demande nappe blanche. Arrivee le 7 apres le depart des Dupont.', file:'contrat_leroy_2026.pdf' },
+  martin: { title:'Groupe Martin', subtitle:'Grand gite -- 22 personnes', badge:'Contrat en attente', badgeClass:'status-red', start:'20 juillet 2026', end:'27 juillet 2026', pers:'22', draps:'16', total:'5 100 EUR', paid:'0 EUR', remaining:'5 100 EUR', danger:true, notes:'Reunion de famille. Attente du contrat signe.', file:'En attente' },
+  bernard: { title:'Fam. Bernard', subtitle:'Petit gite -- 15 personnes', badge:'Acompte paye', badgeClass:'status-green', start:'4 juillet 2026', end:'9 juillet 2026', pers:'12', draps:'8', total:'2 400 EUR', paid:'2 400 EUR', remaining:'0 EUR', danger:false, notes:'Clients reguliers. Preferent le petit gite.', file:'contrat_bernard_2026.pdf' },
+  sportive: { title:'Assoc. Sportive', subtitle:'Petit gite -- 15 personnes', badge:'Acompte paye', badgeClass:'status-green', start:'18 juillet 2026', end:'25 juillet 2026', pers:'15', draps:'10', total:'3 800 EUR', paid:'3 800 EUR', remaining:'0 EUR', danger:false, notes:'Stage sportif ete. Besoin d\'un espace pour le materiel.', file:'contrat_assoc_sportive_2026.pdf' }
+};
+
+function openModal(key) {
+  var r = reservations[key];
+  if (!r) return;
+  document.getElementById('modal-title').textContent = r.title;
+  document.getElementById('modal-subtitle').textContent = r.subtitle;
+  var badge = document.getElementById('modal-badge');
+  badge.textContent = r.badge;
+  badge.className = 'status-badge ' + r.badgeClass;
+  document.getElementById('modal-start').textContent = r.start;
+  document.getElementById('modal-end').textContent = r.end;
+  document.getElementById('modal-pers').textContent = r.pers;
+  document.getElementById('modal-draps').textContent = r.draps;
+  document.getElementById('modal-total').textContent = r.total;
+  document.getElementById('modal-paid').textContent = r.paid;
+  var rem = document.getElementById('modal-remaining');
+  rem.textContent = r.remaining;
+  rem.className = r.danger ? 'info-value danger' : 'info-value';
+  document.getElementById('modal-notes').textContent = r.notes;
+  document.getElementById('modal-file').textContent = r.file;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(event) {
+  if (event.target === document.getElementById('modal')) {
+    document.getElementById('modal').classList.remove('open');
+  }
+}
+</script>
+</body>
+</html>
