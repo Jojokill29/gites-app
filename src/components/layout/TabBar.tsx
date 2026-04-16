@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useSearchParams } from 'react-router-dom'
 import { LABELS } from '../../constants/labels'
 import type { Gite } from '../../types/domain'
 
@@ -13,6 +13,16 @@ function giteTabLabel(gite: Gite): string {
 }
 
 export default function TabBar({ gites, loading, error }: TabBarProps) {
+  const [searchParams] = useSearchParams()
+
+  // Preserve ?month param when switching between gite tabs
+  function giteUrl(giteId: string): string {
+    const month = searchParams.get('month')
+    return month
+      ? `/calendar/${giteId}?month=${month}`
+      : `/calendar/${giteId}`
+  }
+
   if (error) {
     return (
       <div className="bg-surface border-b border-border px-4 py-3 text-center text-sm text-status-red-text max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:border-b-0 max-sm:border-t max-sm:z-50">
@@ -53,7 +63,7 @@ export default function TabBar({ gites, loading, error }: TabBarProps) {
         gites.map((gite) => (
           <NavLink
             key={gite.id}
-            to={`/calendar/${gite.id}`}
+            to={giteUrl(gite.id)}
             className={tabClass}
           >
             {giteTabLabel(gite)}
