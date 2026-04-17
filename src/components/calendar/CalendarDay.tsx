@@ -71,8 +71,7 @@ export default function CalendarDay({
             style={{
               backgroundColor:
                 STATUSES[day.rotation.departing.status].color,
-              color:
-                STATUSES[day.rotation.departing.status].text,
+              color: '#000000',
             }}
             onClick={(e) => {
               e.stopPropagation()
@@ -88,8 +87,7 @@ export default function CalendarDay({
             style={{
               backgroundColor:
                 STATUSES[day.rotation.arriving.status].color,
-              color:
-                STATUSES[day.rotation.arriving.status].text,
+              color: '#000000',
             }}
             onClick={(e) => {
               e.stopPropagation()
