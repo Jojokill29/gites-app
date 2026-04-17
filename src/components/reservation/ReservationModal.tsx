@@ -35,11 +35,12 @@ export default function ReservationModal({
     setSaving(true)
     setError(null)
 
+    // Ensure dates are plain YYYY-MM-DD strings (not transformed by form/zod)
     const payload = {
       gite_id: data.gite_id,
       client_name: data.client_name,
-      start_date: data.start_date,
-      end_date: data.end_date,
+      start_date: String(data.start_date),
+      end_date: String(data.end_date),
       guest_count: data.guest_count,
       linen_sets: data.linen_sets,
       total_amount: data.total_amount,
@@ -47,6 +48,8 @@ export default function ReservationModal({
       status: data.status,
       notes: data.notes,
     }
+
+    console.log('Reservation payload:', JSON.stringify(payload))
 
     const result =
       mode === 'create'

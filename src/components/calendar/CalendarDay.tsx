@@ -32,7 +32,15 @@ export default function CalendarDay({
   return (
     <div
       className={`${baseClasses} ${stateClasses} ${heightClass} [&:nth-child(7n)]:border-r-0`}
-      onClick={() => !isEmpty && onClickDay(day.dateStr)}
+      onClick={(e) => {
+        // Only trigger day click if clicking directly on the cell or day number,
+        // not on a reservation event (which has its own handler + stopPropagation)
+        const target = e.target as HTMLElement
+        const isEventBar = target.closest('[data-reservation]')
+        if (!isEmpty && !isEventBar) {
+          onClickDay(day.dateStr)
+        }
+      }}
     >
       <div
         className={`text-[12px] font-medium mb-1 max-sm:text-[11px] ${
@@ -59,6 +67,7 @@ export default function CalendarDay({
       {day.rotation && (
         <>
           <div
+            data-reservation
             className="block px-1.5 py-0.5 rounded-[4px] text-[10px] font-medium mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-sm:text-[9px] max-sm:px-1 max-sm:py-px"
             style={{
               backgroundColor:
@@ -75,6 +84,7 @@ export default function CalendarDay({
             Dép. {day.rotation.departing.client_name}
           </div>
           <div
+            data-reservation
             className="block px-1.5 py-0.5 rounded-[4px] text-[10px] font-medium mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-sm:text-[9px] max-sm:px-1 max-sm:py-px"
             style={{
               backgroundColor:
