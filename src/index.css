@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
+  /* --- Light palette (default) --- */
   --color-bg: #EFEDE8;
   --color-surface: #FAF8F4;
   --color-surface-alt: #F1EFE8;
@@ -10,6 +13,7 @@
   --color-border: rgba(0, 0, 0, 0.08);
   --color-border-hover: rgba(0, 0, 0, 0.15);
 
+  /* Status colors (shared light/dark — contrast checked against both palettes) */
   --color-status-green: #5DCAA5;
   --color-status-green-bg: #E1F5EE;
   --color-status-green-text: #085041;
@@ -28,6 +32,28 @@
 
   --font-sans: 'DM Sans', -apple-system, sans-serif;
   --font-heading: 'Fraunces', serif;
+}
+
+/* --- Dark palette override via .dark class on <html> --- */
+.dark {
+  --color-bg: #1A1A1A;
+  --color-surface: #242424;
+  --color-surface-alt: #2E2E2E;
+  --color-text: #E8E6E1;
+  --color-text-secondary: #9C9B95;
+  --color-text-tertiary: #6B6A65;
+  --color-border: rgba(255, 255, 255, 0.10);
+  --color-border-hover: rgba(255, 255, 255, 0.18);
+
+  /* Status backgrounds darkened for dark mode readability */
+  --color-status-green-bg: #0D3028;
+  --color-status-green-text: #7DDBB8;
+  --color-status-orange-bg: #3A2A0E;
+  --color-status-orange-text: #F4B95A;
+  --color-status-red-bg: #3A1616;
+  --color-status-red-text: #F28E8D;
+  --color-status-blue-bg: #112A44;
+  --color-status-blue-text: #6AAEE8;
 }
 
 body {
