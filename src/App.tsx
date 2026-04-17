@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { useAuth } from './hooks/useAuth'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { useGites } from './hooks/useGites'
 import LoginPage from './pages/LoginPage'
 import CalendarPage from './pages/CalendarPage'
@@ -14,7 +14,6 @@ function AppLayout() {
   const { user, signOut } = useAuth()
   const { gites, loading: gitesLoading, error: gitesError } = useGites()
 
-  // Redirect / to first gite's calendar
   const firstGiteId = gites.length > 0 ? gites[0].id : null
 
   return (
@@ -28,7 +27,6 @@ function AppLayout() {
             firstGiteId ? (
               <Navigate to={`/calendar/${firstGiteId}`} replace />
             ) : (
-              // Still loading or error — show nothing, TabBar handles the state
               <div />
             )
           }
@@ -43,25 +41,33 @@ function AppLayout() {
   )
 }
 
-function App() {
+function AppRoutes() {
   const { user, loading, signIn } = useAuth()
 
   return (
+    <Routes>
+      <Route
+        path="/login"
+        element={user ? <Navigate to="/" replace /> : <LoginPage onLogin={signIn} />}
+      />
+      <Route
+        path="/*"
+        element={
+          <ProtectedRoute user={user} loading={loading}>
+            <AppLayout />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  )
+}
+
+function App() {
+  return (
     <BrowserRouter>
-      <Routes>
-        <Route
-          path="/login"
-          element={user ? <Navigate to="/" replace /> : <LoginPage onLogin={signIn} />}
-        />
-        <Route
-          path="/*"
-          element={
-            <ProtectedRoute user={user} loading={loading}>
-              <AppLayout />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </BrowserRouter>
   )
 }
