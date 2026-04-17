@@ -97,12 +97,13 @@ export function buildDayInfo(
     else if (isEnd) type = 'end'
     else type = 'middle'
 
-    // Only show client name if reservation spans at least 2 days
+    // Show client name on start and end segments (not middle) if reservation >= 2 days
     const occupiedDays = differenceInDays(
       parseISO(r.end_date),
       parseISO(r.start_date),
     )
-    const showName = (type === 'start' || type === 'single') && occupiedDays >= 2
+    const showName =
+      (type === 'start' || type === 'end' || type === 'single') && occupiedDays >= 2
 
     return { reservation: r, type, showName }
   })
