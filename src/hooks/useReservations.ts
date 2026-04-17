@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { addDays, format } from 'date-fns'
+import { addDays, format, parseISO } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { getMonthFetchRange } from '../utils/calendar'
 import type { Reservation } from '../types/domain'
@@ -36,7 +36,7 @@ export function useReservations(
     const range = getMonthFetchRange(year, month)
     // end_date > range.start means reservation is still active after grid starts
     // start_date < day after range.end means reservation starts before grid ends
-    const dayAfterEnd = format(addDays(new Date(range.end), 1), 'yyyy-MM-dd')
+    const dayAfterEnd = format(addDays(parseISO(range.end), 1), 'yyyy-MM-dd')
 
     supabase
       .from('reservations')

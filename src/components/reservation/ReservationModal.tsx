@@ -62,7 +62,9 @@ export default function ReservationModal({
     setSaving(false)
 
     if (result.error) {
-      console.error('Supabase error:', result.error)
+      // Log full error with details (includes conflicting key ranges for 23P01)
+      console.error('Supabase error:', JSON.stringify(result.error, null, 2))
+      console.error('Payload sent:', JSON.stringify(payload))
       if (result.error.code === '23P01') {
         setError(LABELS.errorDateConflict)
       } else {
