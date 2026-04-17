@@ -50,7 +50,8 @@ export function useReservations(
           console.error('Failed to fetch reservations:', fetchError)
           setError(fetchError.message)
         } else {
-          setReservations(data ?? [])
+          // SQL CHECK constraint guarantees status is one of the 3 known values
+          setReservations((data ?? []) as Reservation[])
         }
         setLoading(false)
       })

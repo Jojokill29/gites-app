@@ -1,7 +1,6 @@
 import { STATUSES } from '../../constants/statuses'
 import type { SegmentType } from '../../utils/calendar'
 import type { Reservation } from '../../types/domain'
-import type { StatusKey } from '../../constants/statuses'
 
 interface CalendarEventProps {
   reservation: Reservation
@@ -23,7 +22,7 @@ export default function CalendarEvent({
   showName,
   onClick,
 }: CalendarEventProps) {
-  const status = STATUSES[reservation.status as StatusKey]
+  const status = STATUSES[reservation.status]
 
   return (
     <div

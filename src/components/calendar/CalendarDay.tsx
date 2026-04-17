@@ -1,7 +1,6 @@
 import CalendarEvent from './CalendarEvent'
 import { STATUSES } from '../../constants/statuses'
 import type { DayInfo } from '../../utils/calendar'
-import type { StatusKey } from '../../constants/statuses'
 
 interface CalendarDayProps {
   day: DayInfo
@@ -71,9 +70,9 @@ export default function CalendarDay({
             className="block px-1.5 py-0.5 rounded-[4px] text-[10px] font-medium mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-sm:text-[9px] max-sm:px-1 max-sm:py-px"
             style={{
               backgroundColor:
-                STATUSES[day.rotation.departing.status as StatusKey].color,
+                STATUSES[day.rotation.departing.status].color,
               color:
-                STATUSES[day.rotation.departing.status as StatusKey].text,
+                STATUSES[day.rotation.departing.status].text,
             }}
             onClick={(e) => {
               e.stopPropagation()
@@ -88,9 +87,9 @@ export default function CalendarDay({
             className="block px-1.5 py-0.5 rounded-[4px] text-[10px] font-medium mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-sm:text-[9px] max-sm:px-1 max-sm:py-px"
             style={{
               backgroundColor:
-                STATUSES[day.rotation.arriving.status as StatusKey].color,
+                STATUSES[day.rotation.arriving.status].color,
               color:
-                STATUSES[day.rotation.arriving.status as StatusKey].text,
+                STATUSES[day.rotation.arriving.status].text,
             }}
             onClick={(e) => {
               e.stopPropagation()
