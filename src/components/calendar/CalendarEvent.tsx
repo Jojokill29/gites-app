@@ -29,7 +29,10 @@ export default function CalendarEvent({
     <div
       className={`block px-1.5 py-0.5 text-[10px] font-medium mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-sm:text-[9px] max-sm:px-1 max-sm:py-px ${segmentStyles[type]}`}
       style={{ backgroundColor: status.color, color: status.text }}
-      onClick={onClick}
+      onClick={(e) => {
+        e.stopPropagation()
+        onClick()
+      }}
       title={reservation.client_name}
     >
       {showName ? reservation.client_name : '\u00A0'}
