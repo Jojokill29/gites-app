@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "generate:types": "npx supabase gen types typescript --linked > src/types/database.ts && npx tsc --noEmit --skipLibCheck src/types/database.ts"
+    "generate:types": "npx supabase gen types typescript --linked 2>/dev/null > src/types/database.ts && npx tsc -b --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

@@ -127,9 +127,10 @@ export type Database = {
           created_at: string
           end_date: string
           gite_id: string
-          guest_count: number
+          guest_count: number | null
           id: string
-          linen_sets: number | null
+          linen_sets_double: number | null
+          linen_sets_single: number | null
           notes: string | null
           paid_amount: number
           start_date: string
@@ -143,9 +144,10 @@ export type Database = {
           created_at?: string
           end_date: string
           gite_id: string
-          guest_count: number
+          guest_count?: number | null
           id?: string
-          linen_sets?: number | null
+          linen_sets_double?: number | null
+          linen_sets_single?: number | null
           notes?: string | null
           paid_amount?: number
           start_date: string
@@ -159,9 +161,10 @@ export type Database = {
           created_at?: string
           end_date?: string
           gite_id?: string
-          guest_count?: number
+          guest_count?: number | null
           id?: string
-          linen_sets?: number | null
+          linen_sets_double?: number | null
+          linen_sets_single?: number | null
           notes?: string | null
           paid_amount?: number
           start_date?: string
