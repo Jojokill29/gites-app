@@ -65,7 +65,7 @@ export default function CalendarEvent({
     <div
       className={`block px-1.5 py-0.5 text-[10px] font-medium mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-sm:text-[9px] max-sm:px-1 max-sm:py-px ${segmentStyles[type]}`}
       data-reservation
-      style={{ backgroundColor: status.color, color: status.text }}
+      style={{ backgroundColor: status.color, color: '#000000' }}
       onClick={(e) => {
         e.stopPropagation()
         onClick()

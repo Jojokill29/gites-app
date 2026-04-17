@@ -123,7 +123,7 @@ export default function ReservationForm({
   const remaining = (Number(watchTotal) || 0) - (Number(watchPaid) || 0)
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} noValidate>
       {/* Title */}
       <h2 className="font-semibold text-[18px] text-text mb-4 pr-8">
         {isEdit ? LABELS.editReservationTitle : LABELS.newReservationTitle}
