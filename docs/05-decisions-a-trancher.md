@@ -239,6 +239,19 @@ En cas de divergence entre les maquettes et une autre doc, **les docs 01 a 05 fo
 
 ---
 
+## 10. Palette de fond adoucie (2026-04-17)
+
+**Decision retenue** : adoucir les fonds pour le confort visuel.
+
+- `--bg` : passe de `#F8F7F4` a `#EFEDE8`
+- `--surface` : passe de `#FFFFFF` a `#FAF8F4`
+
+Les autres couleurs (statuts, texte, accents, bordures) ne changent pas. Les maquettes HTML (`maquettes-gites.html`) ne sont volontairement pas mises a jour (document fige).
+
+Verification de contraste effectuee : texte principal OK (>11:1), couleurs de statut non affectees (fond propre), texte secondaire pre-existant en dessous de 4.5:1 (non aggrave par ce changement).
+
+---
+
 ## 9. Points non decides (a traiter plus tard si necessaire)
 
 Ces points ne bloquent pas le developpement et peuvent etre resolus pendant l'implementation ou en v2 :
