@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import Button from '../components/ui/Button'
 import { LABELS } from '../constants/labels'
 
 const loginSchema = z.object({
@@ -94,13 +95,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-2 px-3.5 text-[13px] font-medium rounded-[10px] bg-status-blue text-white hover:opacity-90 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <Button type="submit" variant="primary" disabled={submitting} className="w-full">
             {submitting ? LABELS.loginLoading : LABELS.login}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

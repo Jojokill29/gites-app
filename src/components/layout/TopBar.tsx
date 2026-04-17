@@ -1,5 +1,6 @@
 import { LABELS } from '../../constants/labels'
 import { getDisplayName, getInitials } from '../../utils/displayName'
+import Button from '../ui/Button'
 
 interface TopBarProps {
   email: string
@@ -25,12 +26,9 @@ export default function TopBar({ email, onLogout }: TopBarProps) {
           </div>
         </div>
       </div>
-      <button
-        onClick={onLogout}
-        className="px-2.5 py-1 text-[12px] font-medium text-text border border-border-hover rounded-[10px] bg-surface hover:bg-surface-alt transition-colors cursor-pointer"
-      >
+      <Button onClick={onLogout} className="px-2.5 py-1 text-[12px]">
         {LABELS.logout}
-      </button>
+      </Button>
     </header>
   )
 }

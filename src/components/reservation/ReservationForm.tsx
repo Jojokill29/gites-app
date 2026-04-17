@@ -1,6 +1,7 @@
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import Button from '../ui/Button'
 import { LABELS } from '../../constants/labels'
 import { STATUSES } from '../../constants/statuses'
 import type { Reservation } from '../../types/domain'
@@ -258,31 +259,17 @@ export default function ReservationForm({
 
       {/* Actions */}
       <div className="flex gap-2 max-sm:flex-col">
-        <button
-          type="submit"
-          disabled={busy}
-          className="flex-1 py-2 px-3.5 text-[13px] font-medium border border-border-hover rounded-[10px] bg-surface hover:bg-surface-alt cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <Button type="submit" disabled={busy} className="flex-1">
           {saving ? 'Enregistrement...' : LABELS.save}
-        </button>
+        </Button>
         {isEdit && onDelete && (
-          <button
-            type="button"
-            onClick={onDelete}
-            disabled={busy}
-            className="flex-1 py-2 px-3.5 text-[13px] font-medium border border-status-red rounded-[10px] bg-surface text-status-red-text hover:bg-status-red-bg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <Button type="button" variant="danger" onClick={onDelete} disabled={busy} className="flex-1">
             {deleting ? 'Suppression...' : LABELS.delete}
-          </button>
+          </Button>
         )}
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={busy}
-          className="flex-1 py-2 px-3.5 text-[13px] font-medium border border-border-hover rounded-[10px] bg-surface hover:bg-surface-alt cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <Button type="button" onClick={onCancel} disabled={busy} className="flex-1">
           {LABELS.cancel}
-        </button>
+        </Button>
       </div>
     </form>
   )
