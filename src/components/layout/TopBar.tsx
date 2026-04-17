@@ -1,6 +1,7 @@
 import { LABELS } from '../../constants/labels'
 import { getDisplayName, getInitials } from '../../utils/displayName'
 import Button from '../ui/Button'
+import ThemeToggle from '../ui/ThemeToggle'
 
 interface TopBarProps {
   email: string
@@ -26,9 +27,12 @@ export default function TopBar({ email, onLogout }: TopBarProps) {
           </div>
         </div>
       </div>
-      <Button onClick={onLogout} className="px-2.5 py-1 text-[12px]">
-        {LABELS.logout}
-      </Button>
+      <div className="flex items-center gap-1.5">
+        <ThemeToggle />
+        <Button onClick={onLogout} className="px-2.5 py-1 text-[12px]">
+          {LABELS.logout}
+        </Button>
+      </div>
     </header>
   )
 }

@@ -7,6 +7,8 @@ export const LABELS = {
   loginTitle: 'Connexion',
   login: 'Se connecter',
   logout: 'Déconnexion',
+  switchToDark: 'Passer en mode sombre',
+  switchToLight: 'Passer en mode clair',
   email: 'Adresse email',
   password: 'Mot de passe',
   forgotPassword: 'Mot de passe oublié ?',
