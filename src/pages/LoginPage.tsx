@@ -20,6 +20,10 @@ interface LoginPageProps {
   onLogin: (email: string, password: string) => Promise<void>
 }
 
+const inputClass =
+  'w-full px-3 py-2 text-[14px] border border-border rounded-[10px] bg-surface focus:outline-none focus:ring-2 focus:ring-status-blue focus:border-transparent'
+const labelClass = 'block text-[12px] font-medium text-text-secondary mb-1'
+
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -45,15 +49,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-bg px-4">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-gray-800 text-center mb-8">
+        <h1 className="font-heading font-semibold text-[24px] text-text text-center mb-8">
           {LABELS.appTitle}
         </h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className={labelClass}>
               {LABELS.email}
             </label>
             <input
@@ -61,15 +65,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               type="email"
               autoComplete="email"
               {...register('email')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputClass}
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+              <p className="mt-1 text-[12px] text-status-red-text">{errors.email.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className={labelClass}>
               {LABELS.password}
             </label>
             <input
@@ -77,23 +81,25 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               type="password"
               autoComplete="current-password"
               {...register('password')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputClass}
             />
             {errors.password && (
-              <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+              <p className="mt-1 text-[12px] text-status-red-text">{errors.password.message}</p>
             )}
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 text-center">{error}</p>
+            <div className="p-3 rounded-[10px] bg-status-red-bg text-status-red-text text-[13px] text-center">
+              {error}
+            </div>
           )}
 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-2 px-4 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-2 px-3.5 text-[13px] font-medium rounded-[10px] bg-status-blue text-white hover:opacity-90 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? 'Connexion...' : LABELS.login}
+            {submitting ? LABELS.loginLoading : LABELS.login}
           </button>
         </form>
       </div>
