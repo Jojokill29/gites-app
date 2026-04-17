@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { addDays, format } from 'date-fns'
 import { supabase } from '../lib/supabase'
 import { getMonthFetchRange } from '../utils/calendar'
@@ -8,6 +8,7 @@ interface UseReservationsReturn {
   reservations: Reservation[]
   loading: boolean
   error: string | null
+  refetch: () => void
 }
 
 export function useReservations(
@@ -18,6 +19,9 @@ export function useReservations(
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [fetchKey, setFetchKey] = useState(0)
+
+  const refetch = useCallback(() => setFetchKey((k) => k + 1), [])
 
   useEffect(() => {
     if (!giteId) {
@@ -50,7 +54,7 @@ export function useReservations(
         }
         setLoading(false)
       })
-  }, [giteId, year, month])
+  }, [giteId, year, month, fetchKey])
 
-  return { reservations, loading, error }
+  return { reservations, loading, error, refetch }
 }

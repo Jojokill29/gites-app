@@ -1,24 +1,38 @@
+import { useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { addMonths, subMonths, format, parseISO } from 'date-fns'
+import { addDays, addMonths, subMonths, format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { useReservations } from '../hooks/useReservations'
 import CalendarGrid from '../components/calendar/CalendarGrid'
 import CalendarLegend from '../components/calendar/CalendarLegend'
+import ReservationModal from '../components/reservation/ReservationModal'
 import { LABELS } from '../constants/labels'
+import type { Gite } from '../types/domain'
+import type { Reservation } from '../types/domain'
 
-export default function CalendarPage() {
+interface CalendarPageProps {
+  gites: Gite[]
+}
+
+type ModalState =
+  | null
+  | { mode: 'create'; defaults?: { start_date: string; end_date: string } }
+  | { mode: 'edit'; reservation: Reservation }
+
+export default function CalendarPage({ gites }: CalendarPageProps) {
   const { giteId } = useParams<{ giteId: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
+  const [modal, setModal] = useState<ModalState>(null)
 
   // Read month from URL or default to current month
   const monthParam = searchParams.get('month')
-  const currentDate = monthParam
-    ? parseISO(monthParam + '-01')
-    : new Date()
+  const currentDate = monthParam ? parseISO(monthParam + '-01') : new Date()
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
 
-  const { reservations, loading } = useReservations(giteId, year, month)
+  const gite = gites.find((g) => g.id === giteId)
+  const giteName = gite ? `${gite.name} (${gite.capacity}p)` : ''
+  const { reservations, loading, refetch } = useReservations(giteId, year, month)
 
   const goToMonth = (date: Date) => {
     setSearchParams({ month: format(date, 'yyyy-MM') })
@@ -30,14 +44,32 @@ export default function CalendarPage() {
 
   // Capitalize first letter of month name
   const monthLabel = format(currentDate, 'MMMM yyyy', { locale: fr })
-  const capitalizedMonth = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)
+  const capitalizedMonth =
+    monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1)
 
   const handleClickDay = (dateStr: string) => {
-    console.log('Day clicked:', dateStr, '(will open new reservation form in step 6)')
+    const nextDay = format(addDays(parseISO(dateStr), 1), 'yyyy-MM-dd')
+    setModal({
+      mode: 'create',
+      defaults: { start_date: dateStr, end_date: nextDay },
+    })
   }
 
   const handleClickReservation = (reservationId: string) => {
-    console.log('Reservation clicked:', reservationId, '(will open reservation modal in step 6)')
+    const reservation = reservations.find((r) => r.id === reservationId)
+    if (reservation) {
+      setModal({ mode: 'edit', reservation })
+    }
+  }
+
+  const handleNewReservation = () => {
+    setModal({ mode: 'create' })
+  }
+
+  const handleModalClose = () => setModal(null)
+  const handleModalSuccess = () => {
+    refetch()
+    setModal(null)
   }
 
   return (
@@ -82,13 +114,28 @@ export default function CalendarPage() {
         onClickReservation={handleClickReservation}
       />
 
-      {/* New reservation button (placeholder, wired in step 6) */}
+      {/* New reservation button */}
       <button
         className="w-full mt-4 py-2 px-3.5 text-[13px] font-medium border border-border-hover rounded-[10px] bg-surface hover:bg-surface-alt cursor-pointer"
-        onClick={() => console.log('New reservation (will be wired in step 6)')}
+        onClick={handleNewReservation}
       >
         {LABELS.newReservation}
       </button>
+
+      {/* Reservation modal */}
+      {modal && giteId && (
+        <ReservationModal
+          mode={modal.mode}
+          reservation={modal.mode === 'edit' ? modal.reservation : undefined}
+          giteId={giteId}
+          giteName={giteName}
+          defaults={
+            modal.mode === 'create' ? modal.defaults : undefined
+          }
+          onClose={handleModalClose}
+          onSuccess={handleModalSuccess}
+        />
+      )}
     </div>
   )
 }
