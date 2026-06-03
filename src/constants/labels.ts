@@ -114,4 +114,25 @@ export const LABELS = {
   errorDateConflict: 'Ces dates entrent en conflit avec une autre réservation sur ce gîte.',
   errorResetEmail: 'Si cette adresse est associée à un compte, un email a été envoyé.',
   errorLoadGites: 'Impossible de charger les gîtes. Rafraîchissez la page.',
+
+  // Contracts
+  contracts: {
+    fieldTitle: 'Contrat',
+    upload: 'Téléverser un contrat',
+    view: 'Voir',
+    replace: 'Remplacer',
+    remove: 'Retirer',
+    cancelReplacement: 'Annuler le remplacement',
+    uploading: 'Téléversement en cours…',
+    attached: 'Contrat attaché',
+    helperText: 'PDF, JPG ou PNG, 10 Mo maximum',
+    replacementPending: 'Nouveau contrat prêt à enregistrer. L\'ancien sera supprimé après enregistrement.',
+    removalPending: 'Le contrat sera retiré à l\'enregistrement.',
+    errors: {
+      invalidType: 'Format de fichier non accepté. Utilisez un PDF, un JPG ou un PNG.',
+      fileTooLarge: 'Le fichier dépasse 10 Mo. Réduisez sa taille avant de réessayer.',
+      uploadFailed: 'Le téléversement a échoué. Vérifiez votre connexion et réessayez.',
+      signedUrlFailed: 'Impossible de générer le lien d\'accès au contrat. Réessayez dans quelques instants.',
+    },
+  },
 } as const
