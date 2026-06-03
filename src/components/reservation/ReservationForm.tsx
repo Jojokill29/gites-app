@@ -1,4 +1,4 @@
-import { useForm, useWatch } from 'react-hook-form'
+import { useForm, useWatch, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Button from '../ui/Button'
@@ -17,9 +17,18 @@ const reservationSchema = z
     client_name: z.string().trim().min(1, 'Le nom du client est obligatoire.'),
     start_date: z.string().min(1, "La date d'arrivée est obligatoire."),
     end_date: z.string().min(1, 'La date de départ est obligatoire.'),
-    guest_count: z.number().int().positive('Doit être supérieur à 0.').nullable().optional(),
-    linen_sets_single: z.number().int().min(0, 'Doit être positif ou nul.').nullable().optional(),
-    linen_sets_double: z.number().int().min(0, 'Doit être positif ou nul.').nullable().optional(),
+    guest_count: z.preprocess(
+      (v) => (v === '' || v === null || Number.isNaN(v) ? undefined : v),
+      z.coerce.number().int().positive('Doit être supérieur à 0.').optional(),
+    ),
+    linen_sets_single: z.preprocess(
+      (v) => (v === '' || v === null || Number.isNaN(v) ? undefined : v),
+      z.coerce.number().int().nonnegative('Doit être positif ou nul.').optional(),
+    ),
+    linen_sets_double: z.preprocess(
+      (v) => (v === '' || v === null || Number.isNaN(v) ? undefined : v),
+      z.coerce.number().int().nonnegative('Doit être positif ou nul.').optional(),
+    ),
     total_amount: z.number({ message: 'Obligatoire.' }).min(0, 'Doit être positif ou nul.'),
     paid_amount: z.number({ message: 'Obligatoire.' }).min(0, 'Doit être positif ou nul.'),
     status: z.enum(['pending_contract', 'pending_deposit', 'deposit_paid']),
@@ -34,7 +43,21 @@ const reservationSchema = z
     path: ['paid_amount'],
   })
 
-export type ReservationFormData = z.infer<typeof reservationSchema>
+// Explicit output type because z.preprocess types its input as unknown,
+// which conflicts with zodResolver's generic constraint.
+export type ReservationFormData = {
+  gite_id: string
+  client_name: string
+  start_date: string
+  end_date: string
+  guest_count?: number
+  linen_sets_single?: number
+  linen_sets_double?: number
+  total_amount: number
+  paid_amount: number
+  status: 'pending_contract' | 'pending_deposit' | 'deposit_paid'
+  notes: string | null
+}
 
 // --- Props ---
 
@@ -98,16 +121,16 @@ export default function ReservationForm({
     control,
     formState: { errors },
   } = useForm<ReservationFormData>({
-    resolver: zodResolver(reservationSchema),
+    resolver: zodResolver(reservationSchema) as Resolver<ReservationFormData>,
     defaultValues: isEdit && reservation
       ? {
           gite_id: reservation.gite_id,
           client_name: reservation.client_name,
           start_date: reservation.start_date,
           end_date: reservation.end_date,
-          guest_count: reservation.guest_count,
-          linen_sets_single: reservation.linen_sets_single,
-          linen_sets_double: reservation.linen_sets_double,
+          guest_count: reservation.guest_count ?? undefined,
+          linen_sets_single: reservation.linen_sets_single ?? undefined,
+          linen_sets_double: reservation.linen_sets_double ?? undefined,
           total_amount: Number(reservation.total_amount),
           paid_amount: Number(reservation.paid_amount),
           status: reservation.status as ReservationFormData['status'],
@@ -118,9 +141,9 @@ export default function ReservationForm({
           client_name: '',
           start_date: defaults?.start_date ?? '',
           end_date: defaults?.end_date ?? '',
-          guest_count: null,
-          linen_sets_single: null,
-          linen_sets_double: null,
+          guest_count: undefined,
+          linen_sets_single: undefined,
+          linen_sets_double: undefined,
           total_amount: undefined as unknown as number,
           paid_amount: 0,
           status: 'pending_contract' as const,
@@ -187,9 +210,7 @@ export default function ReservationForm({
           min="1"
           step="1"
           placeholder="optionnel"
-          {...register('guest_count', {
-            setValueAs: (v: string) => (v === '' ? null : parseInt(v, 10)),
-          })}
+          {...register('guest_count', { valueAsNumber: true })}
           className={inputClass}
         />
         {errors.guest_count && <p className={errorMsgClass}>{errors.guest_count.message}</p>}
@@ -204,9 +225,7 @@ export default function ReservationForm({
             min="0"
             step="1"
             placeholder="optionnel"
-            {...register('linen_sets_single', {
-              setValueAs: (v: string) => (v === '' ? null : parseInt(v, 10)),
-            })}
+            {...register('linen_sets_single', { valueAsNumber: true })}
             className={inputClass}
           />
           {errors.linen_sets_single && <p className={errorMsgClass}>{errors.linen_sets_single.message}</p>}
@@ -218,9 +237,7 @@ export default function ReservationForm({
             min="0"
             step="1"
             placeholder="optionnel"
-            {...register('linen_sets_double', {
-              setValueAs: (v: string) => (v === '' ? null : parseInt(v, 10)),
-            })}
+            {...register('linen_sets_double', { valueAsNumber: true })}
             className={inputClass}
           />
           {errors.linen_sets_double && <p className={errorMsgClass}>{errors.linen_sets_double.message}</p>}
