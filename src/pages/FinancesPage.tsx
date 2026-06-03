@@ -2,12 +2,14 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { LABELS } from '../constants/labels'
 import { useFinances } from '../hooks/useFinances'
+import type { StayRow } from '../hooks/useFinances'
 import { formatEUR } from '../utils/money'
 import FinanceMetricCard from '../components/finances/FinanceMetricCard'
 import FinanceTable from '../components/finances/FinanceTable'
 import ReservationModal from '../components/reservation/ReservationModal'
+import AnnexStayModal from '../components/finances/AnnexStayModal'
 import Button from '../components/ui/Button'
-import type { Gite, Reservation, Quarter } from '../types/domain'
+import type { Gite, AnnexStay, Quarter } from '../types/domain'
 
 const MIN_YEAR = 2020
 
@@ -23,6 +25,12 @@ interface FinancesPageProps {
   gites: Gite[]
 }
 
+type ModalState =
+  | null
+  | { type: 'reservation'; reservationId: string; giteId: string; stay: StayRow }
+  | { type: 'annex-create' }
+  | { type: 'annex-edit'; annexStay: AnnexStay }
+
 export default function FinancesPage({ gites }: FinancesPageProps) {
   const [searchParams, setSearchParams] = useSearchParams()
   const currentYear = getCurrentYear()
@@ -32,37 +40,48 @@ export default function FinancesPage({ gites }: FinancesPageProps) {
   const year = urlYear ? Math.max(MIN_YEAR, Math.min(maxYear, Number(urlYear))) : currentYear
 
   const finances = useFinances(year)
-
-  const [editReservation, setEditReservation] = useState<Reservation | null>(null)
+  const [modal, setModal] = useState<ModalState>(null)
 
   const setYear = (y: number) => {
     setSearchParams({ year: String(y) })
   }
 
-  // Annual totals
   const annualRevenue =
-    finances.revenuesByQuarter[1] +
-    finances.revenuesByQuarter[2] +
-    finances.revenuesByQuarter[3] +
-    finances.revenuesByQuarter[4]
+    finances.revenuesByQuarter[1] + finances.revenuesByQuarter[2] +
+    finances.revenuesByQuarter[3] + finances.revenuesByQuarter[4]
   const annualTaxes =
-    finances.taxesByQuarter[1] +
-    finances.taxesByQuarter[2] +
-    finances.taxesByQuarter[3] +
-    finances.taxesByQuarter[4]
+    finances.taxesByQuarter[1] + finances.taxesByQuarter[2] +
+    finances.taxesByQuarter[3] + finances.taxesByQuarter[4]
   const annualMisc =
-    finances.miscByQuarter[1] +
-    finances.miscByQuarter[2] +
-    finances.miscByQuarter[3] +
-    finances.miscByQuarter[4]
+    finances.miscByQuarter[1] + finances.miscByQuarter[2] +
+    finances.miscByQuarter[3] + finances.miscByQuarter[4]
 
   const currentQuarter = year === currentYear ? getCurrentQuarter() : null
 
-  const handleReservationClick = (reservation: Reservation) => {
-    setEditReservation(reservation)
+  const giteMap = new Map(gites.map((g) => [g.id, g]))
+
+  const handleStayClick = (stay: StayRow) => {
+    if (stay.source === 'reservation' && stay.reservation) {
+      setModal({
+        type: 'reservation',
+        reservationId: stay.id,
+        giteId: stay.gite_id!,
+        stay,
+      })
+    } else if (stay.source === 'annex' && stay.annexStay) {
+      setModal({ type: 'annex-edit', annexStay: stay.annexStay })
+    }
   }
 
-  const giteMap = new Map(gites.map((g) => [g.id, g]))
+  const handleAddAnnexStay = () => {
+    setModal({ type: 'annex-create' })
+  }
+
+  const handleModalClose = () => setModal(null)
+  const handleModalSuccess = () => {
+    setModal(null)
+    finances.refetch()
+  }
 
   return (
     <div className="max-w-[960px] mx-auto px-4 py-5 max-sm:px-3 max-sm:pb-20">
@@ -94,7 +113,6 @@ export default function FinancesPage({ gites }: FinancesPageProps) {
         )}
       </div>
 
-      {/* Error banner */}
       {finances.error && (
         <div className="mb-4 p-3 rounded-[10px] bg-status-red-bg text-status-red-text text-[13px]">
           {LABELS.errorLoadData}
@@ -118,34 +136,47 @@ export default function FinancesPage({ gites }: FinancesPageProps) {
         revenuesByQuarter={finances.revenuesByQuarter}
         taxesByQuarter={finances.taxesByQuarter}
         miscByQuarter={finances.miscByQuarter}
-        reservationsByQuarter={finances.reservationsByQuarter}
+        staysByQuarter={finances.staysByQuarter}
         miscEntriesByQuarter={finances.miscEntriesByQuarter}
         gites={gites}
         year={year}
         currentQuarter={currentQuarter}
         isLoading={finances.isLoading}
-        onReservationClick={handleReservationClick}
+        onStayClick={handleStayClick}
+        onAddAnnexStay={handleAddAnnexStay}
         onDataChanged={finances.refetch}
       />
 
-      {/* Reservation modal (opened from stays table ↗ link) */}
-      {editReservation && (
+      {/* Reservation modal */}
+      {modal?.type === 'reservation' && modal.stay.reservation && (
         <ReservationModal
           mode="edit"
-          reservation={editReservation}
-          giteId={editReservation.gite_id}
-          giteName={
-            (() => {
-              const g = giteMap.get(editReservation.gite_id)
-              return g ? `${g.name} (${g.capacity}p)` : ''
-            })()
-          }
-          giteCapacity={giteMap.get(editReservation.gite_id)?.capacity ?? 0}
-          onClose={() => setEditReservation(null)}
-          onSuccess={() => {
-            setEditReservation(null)
-            finances.refetch()
-          }}
+          reservation={modal.stay.reservation}
+          giteId={modal.giteId}
+          giteName={(() => {
+            const g = giteMap.get(modal.giteId)
+            return g ? `${g.name} (${g.capacity}p)` : ''
+          })()}
+          giteCapacity={giteMap.get(modal.giteId)?.capacity ?? 0}
+          onClose={handleModalClose}
+          onSuccess={handleModalSuccess}
+        />
+      )}
+
+      {/* Annex stay modal */}
+      {modal?.type === 'annex-create' && (
+        <AnnexStayModal
+          mode="create"
+          onClose={handleModalClose}
+          onSuccess={handleModalSuccess}
+        />
+      )}
+      {modal?.type === 'annex-edit' && (
+        <AnnexStayModal
+          mode="edit"
+          annexStay={modal.annexStay}
+          onClose={handleModalClose}
+          onSuccess={handleModalSuccess}
         />
       )}
     </div>

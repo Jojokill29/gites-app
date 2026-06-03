@@ -1,21 +1,24 @@
 import { useState } from 'react'
 import StaysTable from './StaysTable'
 import MiscEntriesList from './MiscEntriesList'
+import Button from '../ui/Button'
 import { LABELS } from '../../constants/labels'
 import { formatEUR } from '../../utils/money'
-import type { Reservation, MiscEntry, Gite, Quarter } from '../../types/domain'
+import type { MiscEntry, Gite, Quarter } from '../../types/domain'
+import type { StayRow } from '../../hooks/useFinances'
 
 interface FinanceTableProps {
   revenuesByQuarter: Record<Quarter, number>
   taxesByQuarter: Record<Quarter, number>
   miscByQuarter: Record<Quarter, number>
-  reservationsByQuarter: Record<Quarter, Reservation[]>
+  staysByQuarter: Record<Quarter, StayRow[]>
   miscEntriesByQuarter: Record<Quarter, MiscEntry[]>
   gites: Gite[]
   year: number
   currentQuarter: Quarter | null
   isLoading: boolean
-  onReservationClick: (reservation: Reservation) => void
+  onStayClick: (stay: StayRow) => void
+  onAddAnnexStay: (quarter: Quarter) => void
   onDataChanged: () => void
 }
 
@@ -33,13 +36,14 @@ export default function FinanceTable({
   revenuesByQuarter,
   taxesByQuarter,
   miscByQuarter,
-  reservationsByQuarter,
+  staysByQuarter,
   miscEntriesByQuarter,
   gites,
   year,
   currentQuarter,
   isLoading,
-  onReservationClick,
+  onStayClick,
+  onAddAnnexStay,
   onDataChanged,
 }: FinanceTableProps) {
   const [openQuarter, setOpenQuarter] = useState<Quarter | null>(null)
@@ -68,7 +72,6 @@ export default function FinanceTable({
 
         return (
           <div key={q}>
-            {/* Quarter row */}
             <div
               className={`flex items-center cursor-pointer hover:bg-surface-alt transition-colors border-b border-border ${
                 isCurrent ? 'bg-status-blue-bg font-medium' : ''
@@ -92,21 +95,22 @@ export default function FinanceTable({
               </span>
             </div>
 
-            {/* Accordion content */}
             {isOpen && (
               <div className="bg-surface-alt border-b border-border px-3 py-3">
-                {/* Stays section */}
                 <h4 className="text-[13px] font-medium text-text mb-2">
                   {LABELS.staysSection}
                 </h4>
                 <StaysTable
-                  reservations={reservationsByQuarter[q]}
+                  stays={staysByQuarter[q]}
                   gites={gites}
-                  onReservationClick={onReservationClick}
-                  onReservationUpdated={onDataChanged}
+                  onStayClick={onStayClick}
                 />
+                <div className="mt-2">
+                  <Button type="button" onClick={() => onAddAnnexStay(q)}>
+                    + Opération annexe
+                  </Button>
+                </div>
 
-                {/* Misc entries section */}
                 <h4 className="text-[13px] font-medium text-text mt-4 mb-2">
                   {LABELS.miscSection}
                 </h4>
