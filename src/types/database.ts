@@ -39,6 +39,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      annex_stays: {
+        Row: {
+          adult_count: number | null
+          client_name: string
+          created_at: string
+          end_date: string
+          guest_count: number | null
+          id: string
+          notes: string | null
+          paid_amount: number
+          start_date: string
+          tax_amount: number | null
+        }
+        Insert: {
+          adult_count?: number | null
+          client_name: string
+          created_at?: string
+          end_date: string
+          guest_count?: number | null
+          id?: string
+          notes?: string | null
+          paid_amount?: number
+          start_date: string
+          tax_amount?: number | null
+        }
+        Update: {
+          adult_count?: number | null
+          client_name?: string
+          created_at?: string
+          end_date?: string
+          guest_count?: number | null
+          id?: string
+          notes?: string | null
+          paid_amount?: number
+          start_date?: string
+          tax_amount?: number | null
+        }
+        Relationships: []
+      }
       gites: {
         Row: {
           capacity: number
