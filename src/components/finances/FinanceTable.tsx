@@ -1,14 +1,22 @@
+import { useState } from 'react'
+import StaysTable from './StaysTable'
+import MiscEntriesList from './MiscEntriesList'
 import { LABELS } from '../../constants/labels'
 import { formatEUR } from '../../utils/money'
-import type { Quarter } from '../../types/domain'
+import type { Reservation, MiscEntry, Gite, Quarter } from '../../types/domain'
 
 interface FinanceTableProps {
   revenuesByQuarter: Record<Quarter, number>
   taxesByQuarter: Record<Quarter, number>
   miscByQuarter: Record<Quarter, number>
-  currentQuarter: Quarter | null // null when viewing a different year
+  reservationsByQuarter: Record<Quarter, Reservation[]>
+  miscEntriesByQuarter: Record<Quarter, MiscEntry[]>
+  gites: Gite[]
+  year: number
+  currentQuarter: Quarter | null
   isLoading: boolean
-  onQuarterClick: (quarter: Quarter) => void
+  onReservationClick: (reservation: Reservation) => void
+  onDataChanged: () => void
 }
 
 const QUARTER_LABELS: Record<Quarter, string> = {
@@ -25,14 +33,24 @@ export default function FinanceTable({
   revenuesByQuarter,
   taxesByQuarter,
   miscByQuarter,
+  reservationsByQuarter,
+  miscEntriesByQuarter,
+  gites,
+  year,
   currentQuarter,
   isLoading,
-  onQuarterClick,
+  onReservationClick,
+  onDataChanged,
 }: FinanceTableProps) {
+  const [openQuarter, setOpenQuarter] = useState<Quarter | null>(null)
   const quarters: Quarter[] = [1, 2, 3, 4]
 
+  const toggleQuarter = (q: Quarter) => {
+    setOpenQuarter(openQuarter === q ? null : q)
+  }
+
   return (
-    <div className={`overflow-x-auto ${isLoading ? 'opacity-50' : ''}`}>
+    <div className={isLoading ? 'opacity-50' : ''}>
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b border-border">
@@ -42,26 +60,67 @@ export default function FinanceTable({
             <th className={`${headerClass} text-right`}>{LABELS.notesHeader}</th>
           </tr>
         </thead>
-        <tbody>
-          {quarters.map((q) => {
-            const isCurrent = q === currentQuarter
-            return (
-              <tr
-                key={q}
-                className={`border-b border-border cursor-pointer hover:bg-surface-alt transition-colors ${
-                  isCurrent ? 'bg-status-blue-bg font-medium' : ''
-                }`}
-                onClick={() => onQuarterClick(q)}
-              >
-                <td className={cellClass}>{QUARTER_LABELS[q]}</td>
-                <td className={`${cellClass} text-right`}>{formatEUR(revenuesByQuarter[q])}</td>
-                <td className={`${cellClass} text-right`}>{formatEUR(taxesByQuarter[q])}</td>
-                <td className={`${cellClass} text-right`}>{formatEUR(miscByQuarter[q])}</td>
-              </tr>
-            )
-          })}
-        </tbody>
       </table>
+
+      {quarters.map((q) => {
+        const isCurrent = q === currentQuarter
+        const isOpen = openQuarter === q
+
+        return (
+          <div key={q}>
+            {/* Quarter row */}
+            <div
+              className={`flex items-center cursor-pointer hover:bg-surface-alt transition-colors border-b border-border ${
+                isCurrent ? 'bg-status-blue-bg font-medium' : ''
+              }`}
+              onClick={() => toggleQuarter(q)}
+            >
+              <span className={`${cellClass} flex-1`}>
+                <span className="mr-1.5 text-[11px] text-text-secondary">
+                  {isOpen ? '▾' : '▸'}
+                </span>
+                {QUARTER_LABELS[q]}
+              </span>
+              <span className={`${cellClass} text-right min-w-[100px]`}>
+                {formatEUR(revenuesByQuarter[q])}
+              </span>
+              <span className={`${cellClass} text-right min-w-[100px]`}>
+                {formatEUR(taxesByQuarter[q])}
+              </span>
+              <span className={`${cellClass} text-right min-w-[100px]`}>
+                {formatEUR(miscByQuarter[q])}
+              </span>
+            </div>
+
+            {/* Accordion content */}
+            {isOpen && (
+              <div className="bg-surface-alt border-b border-border px-3 py-3">
+                {/* Stays section */}
+                <h4 className="text-[13px] font-medium text-text mb-2">
+                  {LABELS.staysSection}
+                </h4>
+                <StaysTable
+                  reservations={reservationsByQuarter[q]}
+                  gites={gites}
+                  onReservationClick={onReservationClick}
+                  onReservationUpdated={onDataChanged}
+                />
+
+                {/* Misc entries section */}
+                <h4 className="text-[13px] font-medium text-text mt-4 mb-2">
+                  {LABELS.miscSection}
+                </h4>
+                <MiscEntriesList
+                  entries={miscEntriesByQuarter[q]}
+                  year={year}
+                  quarter={q}
+                  onChanged={onDataChanged}
+                />
+              </div>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }

@@ -26,7 +26,7 @@ interface MiscEntryFormProps {
   year: number
   quarter: Quarter
   entry?: MiscEntry
-  onSaved: (entry: MiscEntry, isNew: boolean) => void
+  onSaved: () => void
   onCancel: () => void
 }
 
@@ -68,36 +68,18 @@ export default function MiscEntryForm({
       quarter,
     }
 
-    if (isEdit) {
-      const { data: updated, error: updateError } = await supabase
-        .from('misc_entries')
-        .update(payload)
-        .eq('id', entry.id)
-        .select()
-        .single()
+    const result = isEdit
+      ? await supabase.from('misc_entries').update(payload).eq('id', entry.id)
+      : await supabase.from('misc_entries').insert(payload)
 
-      setSaving(false)
-      if (updateError) {
-        console.error('Misc entry update error:', updateError)
-        setError(LABELS.errorSaveData)
-        return
-      }
-      onSaved(updated as MiscEntry, false)
-    } else {
-      const { data: created, error: createError } = await supabase
-        .from('misc_entries')
-        .insert(payload)
-        .select()
-        .single()
+    setSaving(false)
 
-      setSaving(false)
-      if (createError) {
-        console.error('Misc entry create error:', createError)
-        setError(LABELS.errorSaveData)
-        return
-      }
-      onSaved(created as MiscEntry, true)
+    if (result.error) {
+      console.error('Misc entry save error:', result.error)
+      setError(LABELS.errorSaveData)
+      return
     }
+    onSaved()
   }
 
   return (
@@ -110,38 +92,19 @@ export default function MiscEntryForm({
 
       <div className="mb-3">
         <label className={labelClass}>{LABELS.labelField}</label>
-        <input
-          type="text"
-          maxLength={200}
-          {...register('label')}
-          className={inputClass}
-        />
-        {errors.label && (
-          <p className="mt-1 text-[12px] text-status-red-text">{errors.label.message}</p>
-        )}
+        <input type="text" maxLength={200} {...register('label')} className={inputClass} />
+        {errors.label && <p className="mt-1 text-[12px] text-status-red-text">{errors.label.message}</p>}
       </div>
 
       <div className="mb-3">
         <label className={labelClass}>{LABELS.amountField}</label>
-        <input
-          type="text"
-          inputMode="decimal"
-          {...register('amount')}
-          className={inputClass}
-        />
-        {errors.amount && (
-          <p className="mt-1 text-[12px] text-status-red-text">{errors.amount.message}</p>
-        )}
+        <input type="text" inputMode="decimal" {...register('amount')} className={inputClass} />
+        {errors.amount && <p className="mt-1 text-[12px] text-status-red-text">{errors.amount.message}</p>}
       </div>
 
       <div className="mb-3">
         <label className={labelClass}>{LABELS.notes}</label>
-        <textarea
-          rows={2}
-          maxLength={500}
-          {...register('notes')}
-          className={`${inputClass} resize-y`}
-        />
+        <textarea rows={2} maxLength={500} {...register('notes')} className={`${inputClass} resize-y`} />
       </div>
 
       <div className="flex gap-2">

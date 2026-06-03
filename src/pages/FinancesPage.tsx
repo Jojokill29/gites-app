@@ -5,9 +5,9 @@ import { useFinances } from '../hooks/useFinances'
 import { formatEUR } from '../utils/money'
 import FinanceMetricCard from '../components/finances/FinanceMetricCard'
 import FinanceTable from '../components/finances/FinanceTable'
-import QuarterDetailModal from '../components/finances/QuarterDetailModal'
+import ReservationModal from '../components/reservation/ReservationModal'
 import Button from '../components/ui/Button'
-import type { Quarter } from '../types/domain'
+import type { Gite, Reservation, Quarter } from '../types/domain'
 
 const MIN_YEAR = 2020
 
@@ -19,18 +19,21 @@ function getCurrentQuarter(): Quarter {
   return (Math.floor(new Date().getMonth() / 3) + 1) as Quarter
 }
 
-export default function FinancesPage() {
+interface FinancesPageProps {
+  gites: Gite[]
+}
+
+export default function FinancesPage({ gites }: FinancesPageProps) {
   const [searchParams, setSearchParams] = useSearchParams()
   const currentYear = getCurrentYear()
   const maxYear = currentYear + 1
 
-  // Read year from URL, fallback to current year (without setting URL)
   const urlYear = searchParams.get('year')
   const year = urlYear ? Math.max(MIN_YEAR, Math.min(maxYear, Number(urlYear))) : currentYear
 
   const finances = useFinances(year)
 
-  const [selectedQuarter, setSelectedQuarter] = useState<Quarter | null>(null)
+  const [editReservation, setEditReservation] = useState<Reservation | null>(null)
 
   const setYear = (y: number) => {
     setSearchParams({ year: String(y) })
@@ -54,6 +57,12 @@ export default function FinancesPage() {
     finances.miscByQuarter[4]
 
   const currentQuarter = year === currentYear ? getCurrentQuarter() : null
+
+  const handleReservationClick = (reservation: Reservation) => {
+    setEditReservation(reservation)
+  }
+
+  const giteMap = new Map(gites.map((g) => [g.id, g]))
 
   return (
     <div className="max-w-[960px] mx-auto px-4 py-5 max-sm:px-3 max-sm:pb-20">
@@ -96,29 +105,44 @@ export default function FinancesPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         <FinanceMetricCard label={LABELS.annualRevenue} value={formatEUR(annualRevenue)} />
         <FinanceMetricCard label={LABELS.annualTaxes} value={formatEUR(annualTaxes)} />
-        <FinanceMetricCard label={LABELS.annualMisc} value={formatEUR(annualMisc)} />
+        <FinanceMetricCard
+          label={LABELS.annualMisc}
+          value={formatEUR(annualMisc)}
+          negative={annualMisc < 0}
+        />
         <FinanceMetricCard label={LABELS.reservationCount} value={String(finances.reservationCount)} />
       </div>
 
-      {/* Quarterly table */}
+      {/* Quarterly table with accordion */}
       <FinanceTable
         revenuesByQuarter={finances.revenuesByQuarter}
         taxesByQuarter={finances.taxesByQuarter}
         miscByQuarter={finances.miscByQuarter}
+        reservationsByQuarter={finances.reservationsByQuarter}
+        miscEntriesByQuarter={finances.miscEntriesByQuarter}
+        gites={gites}
+        year={year}
         currentQuarter={currentQuarter}
         isLoading={finances.isLoading}
-        onQuarterClick={(q) => setSelectedQuarter(q)}
+        onReservationClick={handleReservationClick}
+        onDataChanged={finances.refetch}
       />
 
-      {/* Quarter detail modal */}
-      {selectedQuarter && (
-        <QuarterDetailModal
-          year={year}
-          quarter={selectedQuarter}
-          taxEntries={finances.taxEntriesByQuarter[selectedQuarter]}
-          miscEntries={finances.miscEntriesByQuarter[selectedQuarter]}
-          onClose={() => {
-            setSelectedQuarter(null)
+      {/* Reservation modal (opened from stays table ↗ link) */}
+      {editReservation && (
+        <ReservationModal
+          mode="edit"
+          reservation={editReservation}
+          giteId={editReservation.gite_id}
+          giteName={
+            (() => {
+              const g = giteMap.get(editReservation.gite_id)
+              return g ? `${g.name} (${g.capacity}p)` : ''
+            })()
+          }
+          onClose={() => setEditReservation(null)}
+          onSuccess={() => {
+            setEditReservation(null)
             finances.refetch()
           }}
         />

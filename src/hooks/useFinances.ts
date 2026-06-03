@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { parseISO } from 'date-fns'
 import { supabase } from '../lib/supabase'
-import type { TaxEntry, MiscEntry, Quarter } from '../types/domain'
+import type { Reservation, MiscEntry, Quarter } from '../types/domain'
 
 type QuarterMap<T> = Record<Quarter, T>
 
@@ -24,7 +24,7 @@ export interface UseFinancesReturn {
   taxesByQuarter: QuarterMap<number>
   miscByQuarter: QuarterMap<number>
   reservationCount: number
-  taxEntriesByQuarter: QuarterMap<TaxEntry[]>
+  reservationsByQuarter: QuarterMap<Reservation[]>
   miscEntriesByQuarter: QuarterMap<MiscEntry[]>
   isLoading: boolean
   error: string | null
@@ -36,7 +36,7 @@ export function useFinances(year: number): UseFinancesReturn {
   const [taxesByQuarter, setTaxesByQuarter] = useState<QuarterMap<number>>(emptyQuarterMap(0))
   const [miscByQuarter, setMiscByQuarter] = useState<QuarterMap<number>>(emptyQuarterMap(0))
   const [reservationCount, setReservationCount] = useState(0)
-  const [taxEntriesByQuarter, setTaxEntriesByQuarter] = useState<QuarterMap<TaxEntry[]>>(emptyQuarterArrays)
+  const [reservationsByQuarter, setReservationsByQuarter] = useState<QuarterMap<Reservation[]>>(emptyQuarterArrays)
   const [miscEntriesByQuarter, setMiscEntriesByQuarter] = useState<QuarterMap<MiscEntry[]>>(emptyQuarterArrays)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -52,27 +52,21 @@ export function useFinances(year: number): UseFinancesReturn {
     const yearEnd = `${year}-12-31`
 
     Promise.all([
-      // 1. Reservations for the year (need start_date + paid_amount)
+      // Reservations for the year (all fields)
       supabase
         .from('reservations')
-        .select('start_date, paid_amount')
-        .gte('start_date', yearStart)
-        .lte('start_date', yearEnd),
-      // 2. Tax entries for the year
-      supabase
-        .from('tax_entries')
         .select('*')
-        .eq('year', year)
-        .order('created_at'),
-      // 3. Misc entries for the year
+        .gte('start_date', yearStart)
+        .lte('start_date', yearEnd)
+        .order('start_date'),
+      // Misc entries for the year
       supabase
         .from('misc_entries')
         .select('*')
         .eq('year', year)
         .order('created_at'),
-    ]).then(([resResult, taxResult, miscResult]) => {
-      // Check for errors
-      const firstError = resResult.error ?? taxResult.error ?? miscResult.error
+    ]).then(([resResult, miscResult]) => {
+      const firstError = resResult.error ?? miscResult.error
       if (firstError) {
         console.error('Finance fetch error:', firstError)
         setError(firstError.message)
@@ -80,27 +74,21 @@ export function useFinances(year: number): UseFinancesReturn {
         return
       }
 
-      // Process reservations → revenue by quarter
-      const reservations = resResult.data ?? []
+      // Process reservations
+      const reservations = (resResult.data ?? []) as Reservation[]
       const revMap = emptyQuarterMap(0)
+      const taxMap = emptyQuarterMap(0)
+      const resByQ = emptyQuarterArrays<Reservation>()
       for (const r of reservations) {
         const q = quarterFromDate(r.start_date)
         revMap[q] += Number(r.paid_amount)
+        taxMap[q] += Number(r.tax_amount ?? 0)
+        resByQ[q].push(r)
       }
       setRevenuesByQuarter(revMap)
-      setReservationCount(reservations.length)
-
-      // Process tax entries
-      const taxes = (taxResult.data ?? []) as TaxEntry[]
-      const taxMap = emptyQuarterMap(0)
-      const taxEntries = emptyQuarterArrays<TaxEntry>()
-      for (const t of taxes) {
-        const q = t.quarter as Quarter
-        taxMap[q] += Number(t.amount)
-        taxEntries[q].push(t)
-      }
       setTaxesByQuarter(taxMap)
-      setTaxEntriesByQuarter(taxEntries)
+      setReservationsByQuarter(resByQ)
+      setReservationCount(reservations.length)
 
       // Process misc entries
       const miscs = (miscResult.data ?? []) as MiscEntry[]
@@ -123,7 +111,7 @@ export function useFinances(year: number): UseFinancesReturn {
     taxesByQuarter,
     miscByQuarter,
     reservationCount,
-    taxEntriesByQuarter,
+    reservationsByQuarter,
     miscEntriesByQuarter,
     isLoading,
     error,
