@@ -29,14 +29,6 @@ const reservationSchema = z
       (v) => (v === '' || v === null || Number.isNaN(v) ? undefined : v),
       z.coerce.number().int().nonnegative('Doit être positif ou nul.').optional(),
     ),
-    adult_count: z.preprocess(
-      (v) => (v === '' || v === null || Number.isNaN(v) ? undefined : v),
-      z.coerce.number().int().nonnegative('Doit être positif ou nul.').optional(),
-    ),
-    tax_amount: z.preprocess(
-      (v) => (v === '' || v === null || Number.isNaN(v) ? undefined : v),
-      z.coerce.number().nonnegative('Doit être positif ou nul.').optional(),
-    ),
     total_amount: z.number({ message: 'Obligatoire.' }).min(0, 'Doit être positif ou nul.'),
     paid_amount: z.number({ message: 'Obligatoire.' }).min(0, 'Doit être positif ou nul.'),
     status: z.enum(['pending_contract', 'pending_deposit', 'deposit_paid']),
@@ -61,8 +53,6 @@ export type ReservationFormData = {
   guest_count?: number
   linen_sets_single?: number
   linen_sets_double?: number
-  adult_count?: number
-  tax_amount?: number
   total_amount: number
   paid_amount: number
   status: 'pending_contract' | 'pending_deposit' | 'deposit_paid'
@@ -75,7 +65,6 @@ interface ReservationFormProps {
   mode: 'create' | 'edit'
   giteId: string
   giteName: string
-  giteCapacity: number
   reservation?: Reservation
   defaults?: { start_date?: string; end_date?: string }
   error: string | null
@@ -114,7 +103,6 @@ export default function ReservationForm({
   error: serverError,
   saving,
   deleting,
-  giteCapacity,
   contractCurrentPath,
   contractPendingPath,
   pendingRemoval,
@@ -131,7 +119,6 @@ export default function ReservationForm({
     register,
     handleSubmit,
     control,
-    setError,
     formState: { errors },
   } = useForm<ReservationFormData>({
     resolver: zodResolver(reservationSchema) as Resolver<ReservationFormData>,
@@ -144,8 +131,6 @@ export default function ReservationForm({
           guest_count: reservation.guest_count ?? undefined,
           linen_sets_single: reservation.linen_sets_single ?? undefined,
           linen_sets_double: reservation.linen_sets_double ?? undefined,
-          adult_count: reservation.adult_count ?? undefined,
-          tax_amount: reservation.tax_amount != null ? Number(reservation.tax_amount) : undefined,
           total_amount: Number(reservation.total_amount),
           paid_amount: Number(reservation.paid_amount),
           status: reservation.status as ReservationFormData['status'],
@@ -159,8 +144,6 @@ export default function ReservationForm({
           guest_count: undefined,
           linen_sets_single: undefined,
           linen_sets_double: undefined,
-          adult_count: undefined,
-          tax_amount: undefined,
           total_amount: undefined as unknown as number,
           paid_amount: 0,
           status: 'pending_contract' as const,
@@ -168,28 +151,13 @@ export default function ReservationForm({
         },
   })
 
-  // Cross-field validation before submitting to parent
-  const handleValidatedSubmit = (data: ReservationFormData) => {
-    if (data.guest_count != null && data.guest_count > giteCapacity) {
-      setError('guest_count', {
-        message: `${LABELS.errorGuestCountExceedsCapacity} (${giteCapacity} max).`,
-      })
-      return
-    }
-    if (data.adult_count != null && data.guest_count != null && data.adult_count > data.guest_count) {
-      setError('adult_count', { message: LABELS.errorAdultCountExceedsGuests })
-      return
-    }
-    onSubmit(data)
-  }
-
   // Live "reste à payer" calculation
   const watchTotal = useWatch({ control, name: 'total_amount' })
   const watchPaid = useWatch({ control, name: 'paid_amount' })
   const remaining = (Number(watchTotal) || 0) - (Number(watchPaid) || 0)
 
   return (
-    <form onSubmit={handleSubmit(handleValidatedSubmit)} noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} noValidate>
       {/* Title */}
       <h2 className="font-semibold text-[18px] text-text mb-4 pr-8">
         {isEdit ? LABELS.editReservationTitle : LABELS.newReservationTitle}
@@ -245,9 +213,6 @@ export default function ReservationForm({
           {...register('guest_count', { valueAsNumber: true })}
           className={inputClass}
         />
-        <p className="mt-0.5 text-[11px] text-text-secondary">
-          {LABELS.giteCapacityHint} {giteCapacity}
-        </p>
         {errors.guest_count && <p className={errorMsgClass}>{errors.guest_count.message}</p>}
       </div>
 
@@ -276,34 +241,6 @@ export default function ReservationForm({
             className={inputClass}
           />
           {errors.linen_sets_double && <p className={errorMsgClass}>{errors.linen_sets_double.message}</p>}
-        </div>
-      </div>
-
-      {/* Adult count + Tax amount */}
-      <div className="grid grid-cols-2 gap-3 mb-3">
-        <div>
-          <label className={labelClass}>{LABELS.adultCount}</label>
-          <input
-            type="number"
-            min="0"
-            step="1"
-            placeholder="optionnel"
-            {...register('adult_count', { valueAsNumber: true })}
-            className={inputClass}
-          />
-          {errors.adult_count && <p className={errorMsgClass}>{errors.adult_count.message}</p>}
-        </div>
-        <div>
-          <label className={labelClass}>{LABELS.taxAmount}</label>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="optionnel"
-            {...register('tax_amount', { valueAsNumber: true })}
-            className={inputClass}
-          />
-          {errors.tax_amount && <p className={errorMsgClass}>{errors.tax_amount.message}</p>}
         </div>
       </div>
 
