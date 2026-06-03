@@ -39,45 +39,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      annex_stays: {
-        Row: {
-          adult_count: number | null
-          client_name: string
-          created_at: string
-          end_date: string
-          guest_count: number | null
-          id: string
-          notes: string | null
-          paid_amount: number
-          start_date: string
-          tax_amount: number | null
-        }
-        Insert: {
-          adult_count?: number | null
-          client_name: string
-          created_at?: string
-          end_date: string
-          guest_count?: number | null
-          id?: string
-          notes?: string | null
-          paid_amount?: number
-          start_date: string
-          tax_amount?: number | null
-        }
-        Update: {
-          adult_count?: number | null
-          client_name?: string
-          created_at?: string
-          end_date?: string
-          guest_count?: number | null
-          id?: string
-          notes?: string | null
-          paid_amount?: number
-          start_date?: string
-          tax_amount?: number | null
-        }
-        Relationships: []
-      }
       gites: {
         Row: {
           capacity: number
@@ -161,7 +122,6 @@ export type Database = {
       }
       reservations: {
         Row: {
-          adult_count: number | null
           client_name: string
           contract_path: string | null
           created_at: string
@@ -175,12 +135,10 @@ export type Database = {
           paid_amount: number
           start_date: string
           status: string
-          tax_amount: number | null
           total_amount: number
           updated_at: string
         }
         Insert: {
-          adult_count?: number | null
           client_name: string
           contract_path?: string | null
           created_at?: string
@@ -194,12 +152,10 @@ export type Database = {
           paid_amount?: number
           start_date: string
           status: string
-          tax_amount?: number | null
           total_amount: number
           updated_at?: string
         }
         Update: {
-          adult_count?: number | null
           client_name?: string
           contract_path?: string | null
           created_at?: string
@@ -213,7 +169,6 @@ export type Database = {
           paid_amount?: number
           start_date?: string
           status?: string
-          tax_amount?: number | null
           total_amount?: number
           updated_at?: string
         }
@@ -226,6 +181,78 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      revenue_entries: {
+        Row: {
+          amount: number
+          created_at: string
+          entry_date: string | null
+          gite_label: string
+          id: string
+          notes: string | null
+          quarter: number
+          year: number
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          entry_date?: string | null
+          gite_label: string
+          id?: string
+          notes?: string | null
+          quarter: number
+          year: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          entry_date?: string | null
+          gite_label?: string
+          id?: string
+          notes?: string | null
+          quarter?: number
+          year?: number
+        }
+        Relationships: []
+      }
+      tax_stays: {
+        Row: {
+          adult_count: number
+          amount: number | null
+          created_at: string
+          gite_label: string
+          id: string
+          nights_count: number
+          notes: string | null
+          quarter: number
+          stay_dates: string | null
+          year: number
+        }
+        Insert: {
+          adult_count: number
+          amount?: number | null
+          created_at?: string
+          gite_label: string
+          id?: string
+          nights_count: number
+          notes?: string | null
+          quarter: number
+          stay_dates?: string | null
+          year: number
+        }
+        Update: {
+          adult_count?: number
+          amount?: number | null
+          created_at?: string
+          gite_label?: string
+          id?: string
+          nights_count?: number
+          notes?: string | null
+          quarter?: number
+          stay_dates?: string | null
+          year?: number
+        }
+        Relationships: []
       }
     }
     Views: {
