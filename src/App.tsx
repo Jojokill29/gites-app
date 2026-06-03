@@ -33,7 +33,7 @@ function AppLayout() {
           }
         />
         <Route path="/calendar/:giteId" element={<CalendarPage gites={gites} />} />
-        <Route path="/finances" element={<FinancesPage gites={gites} />} />
+        <Route path="/finances" element={<FinancesPage />} />
         <Route path="/invoices" element={<InvoicesPage />} />
         <Route path="/export" element={<ExportPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
