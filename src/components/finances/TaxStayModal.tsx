@@ -9,10 +9,10 @@ import { LABELS } from '../../constants/labels'
 import { supabase } from '../../lib/supabase'
 import type { TaxStay, Quarter, GiteLabel } from '../../types/domain'
 
-const GITE_OPTIONS: GiteLabel[] = ['Petit gite', 'Grand gite', 'Annexe']
+const GITE_OPTIONS: GiteLabel[] = ['Le Vallon', 'La Salmonière', 'Annexe']
 
 const schema = z.object({
-  gite_label: z.enum(['Petit gite', 'Grand gite', 'Annexe']),
+  gite_label: z.enum(['Le Vallon', 'La Salmonière', 'Annexe']),
   stay_dates: z.string().optional().or(z.literal('')),
   nights_count: z.number({ message: 'Obligatoire.' }).int().positive('Doit être supérieur à 0.'),
   adult_count: z.number({ message: 'Obligatoire.' }).int().positive('Doit être supérieur à 0.'),
@@ -63,7 +63,7 @@ export default function TaxStayModal({ mode, entry, year, quarter, onClose, onSu
           amount: entry.amount != null ? Number(entry.amount) : undefined,
           notes: entry.notes ?? '',
         }
-      : { gite_label: 'Petit gite', stay_dates: '', nights_count: undefined as unknown as number, adult_count: undefined as unknown as number, amount: undefined, notes: '' },
+      : { gite_label: 'Le Vallon', stay_dates: '', nights_count: undefined as unknown as number, adult_count: undefined as unknown as number, amount: undefined, notes: '' },
   })
 
   const onSubmit = async (data: FormData) => {

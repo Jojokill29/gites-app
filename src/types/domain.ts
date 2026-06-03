@@ -10,7 +10,7 @@ export type Invoice = Database['public']['Tables']['invoices']['Row']
 
 // Finance types
 export type Quarter = 1 | 2 | 3 | 4
-export type GiteLabel = 'Petit gite' | 'Grand gite' | 'Annexe'
+export type GiteLabel = 'Le Vallon' | 'La Salmonière' | 'Annexe'
 
 // Narrow status from string to the 3 known values (SQL CHECK constraint guarantees this)
 export type ReservationStatus = StatusKey

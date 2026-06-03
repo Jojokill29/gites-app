@@ -9,10 +9,10 @@ import { LABELS } from '../../constants/labels'
 import { supabase } from '../../lib/supabase'
 import type { RevenueEntry, Quarter, GiteLabel } from '../../types/domain'
 
-const GITE_OPTIONS: GiteLabel[] = ['Petit gite', 'Grand gite', 'Annexe']
+const GITE_OPTIONS: GiteLabel[] = ['Le Vallon', 'La Salmonière', 'Annexe']
 
 const schema = z.object({
-  gite_label: z.enum(['Petit gite', 'Grand gite', 'Annexe']),
+  gite_label: z.enum(['Le Vallon', 'La Salmonière', 'Annexe']),
   amount: z.number({ message: 'Obligatoire.' }).min(0, 'Doit être positif ou nul.'),
   entry_date: z.string().optional().or(z.literal('')),
   notes: z.string().optional().or(z.literal('')),
@@ -44,7 +44,7 @@ export default function RevenueEntryModal({ mode, entry, year, quarter, onClose,
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: isEdit && entry
       ? { gite_label: entry.gite_label as GiteLabel, amount: Number(entry.amount), entry_date: entry.entry_date ?? '', notes: entry.notes ?? '' }
-      : { gite_label: 'Petit gite', amount: undefined as unknown as number, entry_date: '', notes: '' },
+      : { gite_label: 'Le Vallon', amount: undefined as unknown as number, entry_date: '', notes: '' },
   })
 
   const onSubmit = async (data: FormData) => {

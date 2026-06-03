@@ -5,8 +5,8 @@ import { formatEUR } from '../../utils/money'
 import type { RevenueEntry, TaxStay, MiscEntry, Quarter } from '../../types/domain'
 
 const GITE_PILL: Record<string, { bg: string; text: string }> = {
-  'Petit gite': { bg: '#E6F1FB', text: '#0C447C' },
-  'Grand gite': { bg: '#E1F5EE', text: '#085041' },
+  'Le Vallon': { bg: '#E6F1FB', text: '#0C447C' },
+  'La Salmonière': { bg: '#E1F5EE', text: '#085041' },
   'Annexe': { bg: '#E8E3DC', text: '#5C5346' },
 }
 
