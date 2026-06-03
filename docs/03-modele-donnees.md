@@ -18,9 +18,13 @@ Definit les gites geres par l'application. Demarre avec deux entrees, peut en ac
 | `display_order` | INTEGER | NOT NULL, DEFAULT 0 | Ordre dans la TabBar (utilise pour tri ASC) |
 | `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Horodatage creation |
 
-Contenu initial (seed) :
-- Grand gite, capacity 22, display_order 1
-- Petit gite, capacity 15, display_order 2
+Contenu initial (seed, revise 2026-06-04 apres swap demande par Adrien) :
+- Petit gite, capacity 15, display_order 1 (affiche en premier dans la TabBar)
+- Grand gite, capacity 22, display_order 2
+
+Note : sur le site existant, ces gites sont aussi connus sous les noms "Salmoniere" (15p) et "Valon" (22p). Le swap display_order vise a coller a l'ordre d'affichage du site.
+
+L'annexe n'est PAS un troisieme gite. Elle est traitee comme des operations isolees saisies depuis la section Finances (voir table `annex_stays` plus bas). Pas de calendrier propre.
 
 ### `reservations`
 
@@ -33,8 +37,11 @@ Coeur de l'application. Chaque ligne represente une reservation.
 | `client_name` | TEXT | NOT NULL | Nom affiche sur le calendrier |
 | `start_date` | DATE | NOT NULL | Date d'arrivee |
 | `end_date` | DATE | NOT NULL, CHECK (end_date >= start_date) | Date de depart |
-| `guest_count` | INTEGER | NOT NULL, CHECK > 0 | Nombre d'occupants |
-| `linen_sets` | INTEGER | CHECK >= 0 | Sets de draps fournis (peut etre NULL) |
+| `guest_count` | INTEGER | NULLABLE, CHECK (guest_count IS NULL OR guest_count > 0) | Nombre total d'occupants (optionnel : Johan peut enregistrer la reservation sans connaitre encore le nombre). Sert pour les draps et la capacite. |
+| `adult_count` | INTEGER | NULLABLE, CHECK (adult_count IS NULL OR adult_count >= 0) | Nombre d'adultes (ajoute 2026-06-03). Sert au calcul des taxes de sejour declarees a la commune. Distinct de `guest_count` car certaines communes exonerent les enfants. |
+| `linen_sets_single` | INTEGER | NULLABLE, CHECK (linen_sets_single IS NULL OR linen_sets_single >= 0) | Sets de draps pour lits simples (nullable) |
+| `linen_sets_double` | INTEGER | NULLABLE, CHECK (linen_sets_double IS NULL OR linen_sets_double >= 0) | Sets de draps pour lits doubles (nullable) |
+| `tax_amount` | NUMERIC(10,2) | NULLABLE, CHECK (tax_amount IS NULL OR tax_amount >= 0) | Montant de taxe de sejour pour ce sejour (ajoute 2026-06-03). Saisi par Johan apres chaque sejour. NULL tant que non renseigne. |
 | `total_amount` | NUMERIC(10,2) | NOT NULL, CHECK >= 0 | Montant total en euros |
 | `paid_amount` | NUMERIC(10,2) | NOT NULL, DEFAULT 0, CHECK >= 0 | Montant deja regle |
 | `status` | TEXT | NOT NULL, CHECK IN (...) | Voir liste ci-dessous |
@@ -70,20 +77,28 @@ CREATE INDEX idx_reservations_gite_dates
   ON reservations (gite_id, start_date, end_date);
 ```
 
-### `tax_entries`
+### `tax_entries` (supprimee 2026-06-03)
 
-Saisies manuelles des taxes de sejour versees a la commune (anciennement `finances`, simplifie).
+Table supprimee apres dol&eacute;ance utilisateur du 2026-06-03. Les taxes de sejour sont desormais saisies **par reservation** dans la colonne `reservations.tax_amount`. Migration de suppression : `DROP TABLE tax_entries;`. La table etait vide en production, aucune perte de donnees.
+
+### `annex_stays`
+
+Operations isolees pour les locations de l'annexe (ajoutee 2026-06-04). L'annexe n'a pas de calendrier propre ; Johan saisit chaque sejour annexe depuis la section Finances (accordion trimestre, bouton "Ajouter une operation annexe").
 
 | Colonne | Type | Contraintes | Description |
 |---|---|---|---|
 | `id` | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Identifiant unique |
-| `amount` | NUMERIC(10,2) | NOT NULL, CHECK >= 0 | Montant en euros |
-| `year` | INTEGER | NOT NULL, CHECK BETWEEN 2020 AND 2100 | Annee concernee |
-| `quarter` | INTEGER | NOT NULL, CHECK BETWEEN 1 AND 4 | Trimestre (1-4) |
+| `client_name` | TEXT | NOT NULL | Nom du client de l'annexe |
+| `start_date` | DATE | NOT NULL | Date d'arrivee |
+| `end_date` | DATE | NOT NULL, CHECK (end_date >= start_date) | Date de depart |
+| `guest_count` | INTEGER | NULLABLE, CHECK (guest_count IS NULL OR guest_count > 0) | Nombre total d'occupants |
+| `adult_count` | INTEGER | NULLABLE, CHECK (adult_count IS NULL OR adult_count >= 0) | Nombre d'adultes (taxes) |
+| `paid_amount` | NUMERIC(10,2) | NOT NULL, DEFAULT 0, CHECK >= 0 | CA de l'operation |
+| `tax_amount` | NUMERIC(10,2) | NULLABLE, CHECK (tax_amount IS NULL OR tax_amount >= 0) | Taxe de sejour pour ce sejour annexe |
 | `notes` | TEXT | | Commentaire optionnel |
 | `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Horodatage creation |
 
-Une entree par trimestre n'est pas obligatoire (UNIQUE constraint volontairement absente : laisser la souplesse de plusieurs versements pour un meme trimestre).
+Pas de contrainte d'exclusion : il n'y a pas de calendrier annexe, donc pas de risque metier de chevauchement.
 
 ### `misc_entries`
 
@@ -121,11 +136,14 @@ Photos et scans de factures a transmettre au comptable.
 Deux buckets prives (non publics) :
 
 ### `contracts`
-- Chemin : `contracts/{uuid}.pdf` (UUID genere a l'upload, jamais base sur le nom utilisateur pour eviter les problemes d'accents et de caracteres speciaux)
+- Chemin : `contracts/{uuid}.{ext}` ou `ext` ∈ {`pdf`, `jpg`, `png`} (UUID genere a l'upload, jamais base sur le nom utilisateur pour eviter les problemes d'accents et de caracteres speciaux ; extension derivee du type MIME du fichier, pas du nom original)
 - Le path complet est stocke dans `reservations.contract_path`
 - Acces : URLs signees uniquement, duree 10 minutes
+- Types acceptes a l'upload : `application/pdf`, `image/jpeg`, `image/png`. Taille max : 10 Mo avant compression.
+- Images JPEG/PNG compressees cote client avant upload (qualite 0.8, max 2000px) via `browser-image-compression`, comme pour le bucket `invoices`
 - Quand une reservation est mise a jour avec un nouveau contrat : on uploade le nouveau, on update `contract_path`, on supprime l'ancien fichier
 - Quand une reservation est supprimee : suppression manuelle du fichier dans le code (pas de cascade automatique sur Storage)
+- Decision tranchee le 2026-06-03 : initialement prevu en PDF seulement, elargi a JPG/PNG pour accepter les photos brutes de telephone. Voir `directives/07-contrats-pdf.md`.
 
 ### `invoices`
 - Chemin : `invoices/{uuid}.{ext}` ou ext est `jpg`, `png`, ou `pdf`
@@ -237,29 +255,57 @@ const remainingAmount = reservation.total_amount - reservation.paid_amount;
 
 ### Calcul du chiffre d'affaires d'un trimestre
 
-**Regle retenue** (voir decision 1 dans `05-decisions-a-trancher.md`) : le CA d'un trimestre est la somme des `paid_amount` des reservations dont le `start_date` tombe dans le trimestre. Une reservation a cheval sur deux trimestres est entierement comptee dans le trimestre de son `start_date`.
+**Regle retenue** (voir decision 1) : le CA d'un trimestre est la somme des `paid_amount` des reservations + des `annex_stays` dont le `start_date` tombe dans le trimestre. Reservation/annex_stay a cheval sur deux trimestres = comptee entierement dans le trimestre de son `start_date`.
 
 Requete pour les 4 trimestres d'une annee donnee :
 
 ```sql
-SELECT
-  EXTRACT(QUARTER FROM start_date)::int as quarter,
-  COALESCE(SUM(paid_amount), 0) as revenue
+-- CA des reservations
+SELECT EXTRACT(QUARTER FROM start_date)::int as quarter,
+       COALESCE(SUM(paid_amount), 0) as revenue
 FROM reservations
 WHERE EXTRACT(YEAR FROM start_date) = $1
-GROUP BY EXTRACT(QUARTER FROM start_date)
-ORDER BY quarter;
+GROUP BY EXTRACT(QUARTER FROM start_date);
+
+-- CA des annex_stays
+SELECT EXTRACT(QUARTER FROM start_date)::int as quarter,
+       COALESCE(SUM(paid_amount), 0) as revenue
+FROM annex_stays
+WHERE EXTRACT(YEAR FROM start_date) = $1
+GROUP BY EXTRACT(QUARTER FROM start_date);
 ```
 
-Les trimestres sans reservation ne sont pas retournes par cette requete ; le code client doit initialiser les 4 trimestres a 0 avant merge.
+Les trimestres sans operation ne sont pas retournes ; cote client, initialiser les 4 trimestres a 0 puis additionner les deux resultats.
 
 ### Agregation taxes de sejour par trimestre
+
+Taxes saisies a la fois sur `reservations.tax_amount` et sur `annex_stays.tax_amount`. Total trimestriel = somme des deux. Meme regle d'attribution (trimestre du `start_date`).
+
+```sql
+-- Taxes des reservations
+SELECT EXTRACT(QUARTER FROM start_date)::int as quarter,
+       COALESCE(SUM(tax_amount), 0) as total_tax
+FROM reservations
+WHERE EXTRACT(YEAR FROM start_date) = $1 AND tax_amount IS NOT NULL
+GROUP BY EXTRACT(QUARTER FROM start_date);
+
+-- Taxes des annex_stays
+SELECT EXTRACT(QUARTER FROM start_date)::int as quarter,
+       COALESCE(SUM(tax_amount), 0) as total_tax
+FROM annex_stays
+WHERE EXTRACT(YEAR FROM start_date) = $1 AND tax_amount IS NOT NULL
+GROUP BY EXTRACT(QUARTER FROM start_date);
+```
+
+Cote client : somme les deux resultats. Pareil pour le CA (inclure `annex_stays.paid_amount`).
+
+### Agregation notes diverses par trimestre
 
 ```sql
 SELECT
   quarter,
-  COALESCE(SUM(amount), 0) as total_tax
-FROM tax_entries
+  COALESCE(SUM(amount), 0) as total_misc
+FROM misc_entries
 WHERE year = $1
 GROUP BY quarter
 ORDER BY quarter;

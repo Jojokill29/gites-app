@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maquette Finances v2 — Gestion des Gites</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #F8F7F4;
+    --surface: #FFFFFF;
+    --surface-alt: #F1EFE8;
+    --text: #2C2C2A;
+    --text-secondary: #888780;
+    --text-tertiary: #B4B2A9;
+    --border: rgba(0,0,0,0.08);
+    --border-hover: rgba(0,0,0,0.15);
+    --green: #5DCAA5;
+    --green-bg: #E1F5EE;
+    --green-text: #085041;
+    --orange: #EF9F27;
+    --orange-bg: #FAEEDA;
+    --orange-text: #854F0B;
+    --red: #E24B4A;
+    --red-bg: #FCEBEB;
+    --red-text: #791F1F;
+    --blue: #378ADD;
+    --blue-bg: #E6F1FB;
+    --blue-text: #0C447C;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--blue-bg);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 11px; color: var(--blue-text);
+  }
+  .topbar-title { font-weight: 600; font-size: 15px; }
+  .topbar-sub { font-size: 11px; color: var(--text-secondary); }
+
+  .tabs-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; overflow-x: auto;
+  }
+  .tab-btn {
+    padding: 14px 18px; font-size: 13px; font-family: inherit; font-weight: 400;
+    color: var(--text-secondary); background: none; border: none;
+    border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap;
+  }
+  .tab-btn.active { color: var(--text); font-weight: 500; border-bottom-color: var(--text); }
+
+  .content-area { max-width: 960px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 14px; font-size: 13px; font-family: inherit; font-weight: 500;
+    border: 1px solid var(--border-hover); border-radius: var(--radius);
+    background: var(--surface); color: var(--text); cursor: pointer;
+  }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-ghost { border: none; background: transparent; color: var(--text-secondary); }
+  .btn-ghost:hover { background: var(--surface-alt); color: var(--text); }
+  .btn-danger { color: var(--red-text); border-color: var(--red); }
+
+  .year-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .year-label { font-family: 'Fraunces', serif; font-weight: 600; font-size: 22px; min-width: 80px; text-align: center; }
+
+  .metrics-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px;
+  }
+  .metric-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 16px;
+  }
+  .metric-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .metric-value { font-size: 22px; font-weight: 600; }
+  .metric-value.neg { color: var(--red-text); }
+
+  .finance-table {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .finance-row {
+    display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr;
+    padding: 12px 16px; font-size: 14px; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background 0.1s;
+  }
+  .finance-row:hover { background: var(--surface-alt); }
+  .finance-row:last-child { border-bottom: none; }
+  .finance-row.header-row {
+    font-weight: 500; color: var(--text-secondary); font-size: 12px;
+    background: var(--surface-alt); text-transform: uppercase; letter-spacing: 0.3px;
+    cursor: default;
+  }
+  .finance-row.header-row:hover { background: var(--surface-alt); }
+  .finance-row.highlight { background: var(--blue-bg); }
+  .finance-row.highlight:hover { background: var(--blue-bg); }
+  .finance-row.expanded {
+    background: var(--blue-bg);
+    border-bottom: none;
+  }
+  .finance-cell-right { text-align: right; }
+  .finance-cell-right.neg { color: var(--red-text); }
+
+  .chevron { display: inline-block; margin-right: 6px; transition: transform 0.15s; color: var(--text-tertiary); }
+  .chevron.open { transform: rotate(90deg); color: var(--text); }
+
+  .quarter-detail {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+  }
+  .quarter-detail-inner {
+    padding: 18px 20px 20px;
+    border-left: 3px solid var(--blue);
+  }
+
+  .detail-section { margin-bottom: 22px; }
+  .detail-section:last-child { margin-bottom: 0; }
+
+  .detail-section-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .detail-section-sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+
+  /* Tableau séjours */
+  .stays-table {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .stays-header, .stays-row {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 0.7fr 0.7fr 1fr 1fr 0.5fr;
+    gap: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    align-items: center;
+  }
+  .stays-header {
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-bottom: 1px solid var(--border);
+  }
+  .stays-row {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .stays-row:last-child { border-bottom: none; }
+  .stays-cell-right { text-align: right; }
+  .stays-cell-editable {
+    background: var(--bg);
+    border: 1px dashed var(--border-hover);
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: text;
+  }
+  .gite-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--surface-alt);
+    color: var(--text-secondary);
+  }
+  .gite-pill.grand { background: #E8EFE5; color: #2F5C2A; }
+  .gite-pill.petit { background: #F0E8F3; color: #5C2A5F; }
+  .gite-pill.annexe { background: #FFF1D9; color: #6E4A0E; }
+
+  /* Section Notes diverses */
+  .notes-list {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .note-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 0.7fr;
+    gap: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+  .note-row:last-child { border-bottom: none; }
+  .note-label { font-weight: 500; }
+  .note-amount { text-align: right; font-weight: 500; }
+  .note-amount.neg { color: var(--red-text); }
+  .note-actions { display: flex; justify-content: flex-end; gap: 4px; }
+
+  .empty-state {
+    padding: 14px;
+    font-style: italic;
+    color: var(--text-tertiary);
+    font-size: 13px;
+    text-align: center;
+    background: var(--surface-alt);
+    border-radius: var(--radius);
+  }
+
+  .add-link {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--blue-text);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .add-link:hover { text-decoration: underline; }
+
+  .legend {
+    margin-top: 32px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-align: center;
+    line-height: 1.7;
+    padding: 12px;
+    border-top: 1px dashed var(--border);
+  }
+
+  @media (max-width: 720px) {
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .finance-row { font-size: 12px; padding: 10px 12px; grid-template-columns: 1fr 0.8fr 0.8fr 0.8fr; }
+    .stays-header, .stays-row { grid-template-columns: 1fr; gap: 4px; padding: 10px; }
+    .stays-header { display: none; }
+    .stays-cell-right { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="avatar">JS</div>
+    <div>
+      <div class="topbar-title">Johan S.</div>
+      <div class="topbar-sub">Gestion des gites</div>
+    </div>
+  </div>
+  <button class="btn btn-sm">Se deconnecter</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs-bar">
+  <button class="tab-btn">Grand gite (22p)</button>
+  <button class="tab-btn">Petit gite (15p)</button>
+  <button class="tab-btn active">Finances</button>
+  <button class="tab-btn">Factures</button>
+  <button class="tab-btn">Export</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content-area">
+
+  <!-- Navigation année -->
+  <div class="year-nav">
+    <button class="btn btn-sm">&#8249;</button>
+    <span class="year-label">2026</span>
+    <button class="btn btn-sm">&#8250;</button>
+    <button class="btn btn-sm" style="margin-left:auto;">Annee courante</button>
+  </div>
+
+  <!-- 4 metric-cards -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-label">CA annuel</div>
+      <div class="metric-value">42 800 EUR</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Taxes de sejour</div>
+      <div class="metric-value">1 540 EUR</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Notes diverses</div>
+      <div class="metric-value neg">-120 EUR</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Reservations</div>
+      <div class="metric-value">28</div>
+    </div>
+  </div>
+
+  <!-- Tableau trimestriel -->
+  <div class="finance-table">
+    <div class="finance-row header-row">
+      <span>Trimestre</span>
+      <span class="finance-cell-right">Chiffre d'affaires</span>
+      <span class="finance-cell-right">Taxes de sejour</span>
+      <span class="finance-cell-right">Notes diverses</span>
+    </div>
+
+    <!-- T1 replié -->
+    <div class="finance-row">
+      <span><span class="chevron">&#9656;</span>T1 -- jan a mars</span>
+      <span class="finance-cell-right">3 200 EUR</span>
+      <span class="finance-cell-right">180 EUR</span>
+      <span class="finance-cell-right">0 EUR</span>
+    </div>
+
+    <!-- T2 replié -->
+    <div class="finance-row">
+      <span><span class="chevron">&#9656;</span>T2 -- avr a juin</span>
+      <span class="finance-cell-right">12 400 EUR</span>
+      <span class="finance-cell-right">460 EUR</span>
+      <span class="finance-cell-right">0 EUR</span>
+    </div>
+
+    <!-- T3 développé + trimestre courant -->
+    <div class="finance-row expanded">
+      <span style="font-weight:500;"><span class="chevron open">&#9656;</span>T3 -- juil a sept</span>
+      <span class="finance-cell-right" style="font-weight:500;">21 600 EUR</span>
+      <span class="finance-cell-right" style="font-weight:500;">720 EUR</span>
+      <span class="finance-cell-right neg" style="font-weight:500;">-120 EUR</span>
+    </div>
+
+    <!-- Accordion contenu T3 -->
+    <div class="quarter-detail">
+      <div class="quarter-detail-inner">
+
+        <!-- Section séjours -->
+        <div class="detail-section">
+          <div class="detail-section-title">Sejours du trimestre</div>
+          <div class="detail-section-sub">3 sejours enregistres. Cliquez sur un champ pour le modifier.</div>
+
+          <div class="stays-table">
+            <div class="stays-header">
+              <span>Arrivee</span>
+              <span>Gite</span>
+              <span class="stays-cell-right">Nuits</span>
+              <span class="stays-cell-right">Adultes</span>
+              <span class="stays-cell-right">CA</span>
+              <span class="stays-cell-right">Taxe</span>
+              <span></span>
+            </div>
+
+            <div class="stays-row">
+              <span>14 juil 2026<br><span style="color:var(--text-secondary);font-size:11px;">Mme Dupont</span></span>
+              <span><span class="gite-pill grand">Grand gite</span></span>
+              <span class="stays-cell-right">7</span>
+              <span class="stays-cell-right"><span class="stays-cell-editable">12</span></span>
+              <span class="stays-cell-right">3 200 EUR</span>
+              <span class="stays-cell-right"><span class="stays-cell-editable">168 EUR</span></span>
+              <span class="stays-cell-right"><button class="btn btn-sm btn-ghost" title="Ouvrir la fiche">&#8599;</button></span>
+            </div>
+
+            <div class="stays-row">
+              <span>21 juil 2026<br><span style="color:var(--text-secondary);font-size:11px;">M. Martin</span></span>
+              <span><span class="gite-pill petit">Petit gite</span></span>
+              <span class="stays-cell-right">5</span>
+              <span class="stays-cell-right"><span class="stays-cell-editable">8</span></span>
+              <span class="stays-cell-right">2 100 EUR</span>
+              <span class="stays-cell-right"><span class="stays-cell-editable">80 EUR</span></span>
+              <span class="stays-cell-right"><button class="btn btn-sm btn-ghost" title="Ouvrir la fiche">&#8599;</button></span>
+            </div>
+
+            <div class="stays-row">
+              <span>28 juil 2026<br><span style="color:var(--text-secondary);font-size:11px;">Famille Bernard</span></span>
+              <span><span class="gite-pill grand">Grand gite</span></span>
+              <span class="stays-cell-right">6</span>
+              <span class="stays-cell-right"><span class="stays-cell-editable">14</span></span>
+              <span class="stays-cell-right">3 600 EUR</span>
+              <span class="stays-cell-right"><span class="stays-cell-editable">168 EUR</span></span>
+              <span class="stays-cell-right"><button class="btn btn-sm btn-ghost" title="Ouvrir la fiche">&#8599;</button></span>
+            </div>
+
+            <!-- Variante annexe pour visualiser -->
+            <div class="stays-row" style="opacity:0.55;">
+              <span>15 aout 2026<br><span style="color:var(--text-secondary);font-size:11px;">M. Lopez (exemple annexe)</span></span>
+              <span><span class="gite-pill annexe">Annexe</span></span>
+              <span class="stays-cell-right">3</span>
+              <span class="stays-cell-right"><span class="stays-cell-editable">4</span></span>
+              <span class="stays-cell-right">600 EUR</span>
+              <span class="stays-cell-right"><span class="stays-cell-editable">24 EUR</span></span>
+              <span class="stays-cell-right"><button class="btn btn-sm btn-ghost" title="Ouvrir la fiche">&#8599;</button></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section notes diverses -->
+        <div class="detail-section">
+          <div class="detail-section-title">Notes diverses du trimestre</div>
+          <div class="detail-section-sub">Remboursements, frais exceptionnels, corrections.</div>
+
+          <div class="notes-list">
+            <div class="note-row">
+              <span class="note-label">Remboursement annulation tardive M. Lopez</span>
+              <span class="note-amount neg">-120 EUR</span>
+              <span class="note-actions">
+                <button class="btn btn-sm btn-ghost" title="Modifier">&#9998;</button>
+                <button class="btn btn-sm btn-ghost btn-danger" title="Supprimer">&#10005;</button>
+              </span>
+            </div>
+          </div>
+
+          <a class="add-link" href="#">+ Ajouter une note</a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- T4 replié -->
+    <div class="finance-row">
+      <span><span class="chevron">&#9656;</span>T4 -- oct a dec</span>
+      <span class="finance-cell-right">5 600 EUR</span>
+      <span class="finance-cell-right">180 EUR</span>
+      <span class="finance-cell-right">0 EUR</span>
+    </div>
+
+  </div>
+
+  <div class="legend">
+    Maquette indicative apres dol&eacute;ance utilisateur (saisie taxes par s&eacute;jour, accord&eacute;on trimestre, annexe).<br>
+    Les champs en pointill&eacute;s sont &eacute;ditables inline. Cliquer sur une ligne trimestre l'ouvre / la ferme.<br>
+    Cliquer sur la fl&egrave;che &#8599; d'une ligne s&eacute;jour ouvre la fiche r&eacute;servation compl&egrave;te.
+  </div>
+
+</div>
+
+</body>
+</html>
