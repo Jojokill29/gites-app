@@ -13,6 +13,7 @@ interface ReservationModalProps {
   reservation?: Reservation
   giteId: string
   giteName: string
+  giteCapacity?: number
   defaults?: { start_date?: string; end_date?: string }
   onClose: () => void
   onSuccess: () => void
@@ -23,6 +24,7 @@ export default function ReservationModal({
   reservation,
   giteId,
   giteName,
+  giteCapacity = 0,
   defaults,
   onClose,
   onSuccess,
@@ -95,6 +97,8 @@ export default function ReservationModal({
       guest_count: data.guest_count ?? null,
       linen_sets_single: data.linen_sets_single ?? null,
       linen_sets_double: data.linen_sets_double ?? null,
+      adult_count: data.adult_count ?? null,
+      tax_amount: data.tax_amount ?? null,
       total_amount: data.total_amount,
       paid_amount: data.paid_amount,
       status: data.status,
@@ -181,6 +185,7 @@ export default function ReservationModal({
           mode={mode}
           giteId={giteId}
           giteName={giteName}
+          giteCapacity={giteCapacity}
           reservation={reservation}
           defaults={defaults}
           error={error}

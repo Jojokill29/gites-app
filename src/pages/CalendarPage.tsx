@@ -116,6 +116,7 @@ export default function CalendarPage({ gites }: CalendarPageProps) {
           reservation={modal.mode === 'edit' ? modal.reservation : undefined}
           giteId={giteId}
           giteName={giteName}
+          giteCapacity={gite?.capacity ?? 0}
           defaults={
             modal.mode === 'create' ? modal.defaults : undefined
           }

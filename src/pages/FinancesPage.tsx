@@ -140,6 +140,7 @@ export default function FinancesPage({ gites }: FinancesPageProps) {
               return g ? `${g.name} (${g.capacity}p)` : ''
             })()
           }
+          giteCapacity={giteMap.get(editReservation.gite_id)?.capacity ?? 0}
           onClose={() => setEditReservation(null)}
           onSuccess={() => {
             setEditReservation(null)
