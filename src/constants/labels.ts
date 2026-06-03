@@ -115,6 +115,9 @@ export const LABELS = {
   errorResetEmail: 'Si cette adresse est associée à un compte, un email a été envoyé.',
   errorLoadGites: 'Impossible de charger les gîtes. Rafraîchissez la page.',
 
+  // Calendar indicators
+  missingContract: 'Contrat manquant',
+
   // Contracts
   contracts: {
     fieldTitle: 'Contrat',
