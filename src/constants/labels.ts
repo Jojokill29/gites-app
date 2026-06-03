@@ -64,6 +64,7 @@ export const LABELS = {
   nextYear: 'Année suivante',
   annualRevenue: 'Chiffre d\'affaires annuel',
   annualTaxes: 'Taxes de séjour annuelles',
+  annualMisc: 'Notes diverses',
   reservationCount: 'Nombre de réservations',
   quarterHeader: 'Trimestre',
   revenueHeader: 'Chiffre d\'affaires',
