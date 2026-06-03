@@ -7,6 +7,9 @@ export type TaxEntry = Database['public']['Tables']['tax_entries']['Row']
 export type MiscEntry = Database['public']['Tables']['misc_entries']['Row']
 export type Invoice = Database['public']['Tables']['invoices']['Row']
 
+// Finance types
+export type Quarter = 1 | 2 | 3 | 4
+
 // Narrow status from string to the 3 known values (SQL CHECK constraint guarantees this)
 export type ReservationStatus = StatusKey
 
