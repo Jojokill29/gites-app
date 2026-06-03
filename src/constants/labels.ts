@@ -128,6 +128,11 @@ export const LABELS = {
     helperText: 'PDF, JPG ou PNG, 10 Mo maximum',
     replacementPending: 'Nouveau contrat prêt à enregistrer. L\'ancien sera supprimé après enregistrement.',
     removalPending: 'Le contrat sera retiré à l\'enregistrement.',
+    previewTitle: 'Contrat',
+    previewLoading: 'Chargement du contrat…',
+    previewClose: 'Fermer',
+    previewOpenInNewTab: 'Ouvrir dans un nouvel onglet',
+    previewErrorLoad: 'Impossible d\'afficher le contrat. Essayez de l\'ouvrir dans un nouvel onglet.',
     errors: {
       invalidType: 'Format de fichier non accepté. Utilisez un PDF, un JPG ou un PNG.',
       fileTooLarge: 'Le fichier dépasse 10 Mo. Réduisez sa taille avant de réessayer.',

@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react'
 import Button from '../ui/Button'
+import ContractPreviewModal from './ContractPreviewModal'
 import { LABELS } from '../../constants/labels'
-import { uploadContract, getContractSignedUrl } from '../../lib/storage'
+import { uploadContract } from '../../lib/storage'
 import {
   validateContractFile,
   prepareContractFile,
@@ -32,6 +33,7 @@ export default function ContractField({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showPreview, setShowPreview] = useState(false)
 
   const openFilePicker = () => {
     // Reset the input so the same file can be re-selected
@@ -67,16 +69,6 @@ export default function ContractField({
     }
   }
 
-  const handleView = async () => {
-    if (!currentPath) return
-    try {
-      const url = await getContractSignedUrl(currentPath)
-      window.open(url, '_blank', 'noopener,noreferrer')
-    } catch {
-      setError(L.errors.signedUrlFailed)
-    }
-  }
-
   // Hidden file input shared by all states
   const fileInput = (
     <input
@@ -88,6 +80,10 @@ export default function ContractField({
       tabIndex={-1}
     />
   )
+
+  // The path to preview: for "existing contract" state it's currentPath,
+  // for "fresh upload" (pendingPath only) it could be pendingPath
+  const previewPath = currentPath ?? pendingPath
 
   // State: replacement pending (currentPath + pendingPath)
   if (currentPath && pendingPath) {
@@ -117,8 +113,8 @@ export default function ContractField({
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
-            onClick={handleView}
-            aria-label="Ouvrir le contrat dans un nouvel onglet"
+            onClick={() => setShowPreview(true)}
+            aria-label="Afficher le contrat"
           >
             {L.view}
           </Button>
@@ -133,6 +129,12 @@ export default function ContractField({
         {error && (
           <p className="mt-2 text-[12px] text-status-red-text">{error}</p>
         )}
+        {showPreview && previewPath && (
+          <ContractPreviewModal
+            path={previewPath}
+            onClose={() => setShowPreview(false)}
+          />
+        )}
       </div>
     )
   }
@@ -146,6 +148,13 @@ export default function ContractField({
         </span>
         <p className="text-[13px] text-text mb-2">{L.attached}</p>
         <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            onClick={() => setShowPreview(true)}
+            aria-label="Afficher le contrat"
+          >
+            {L.view}
+          </Button>
           <Button type="button" onClick={openFilePicker} disabled={uploading}>
             {uploading ? L.uploading : L.replace}
           </Button>
@@ -156,6 +165,12 @@ export default function ContractField({
         {fileInput}
         {error && (
           <p className="mt-2 text-[12px] text-status-red-text">{error}</p>
+        )}
+        {showPreview && previewPath && (
+          <ContractPreviewModal
+            path={previewPath}
+            onClose={() => setShowPreview(false)}
+          />
         )}
       </div>
     )
