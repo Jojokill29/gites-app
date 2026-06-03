@@ -122,6 +122,7 @@ export type Database = {
       }
       reservations: {
         Row: {
+          adult_count: number | null
           client_name: string
           contract_path: string | null
           created_at: string
@@ -135,10 +136,12 @@ export type Database = {
           paid_amount: number
           start_date: string
           status: string
+          tax_amount: number | null
           total_amount: number
           updated_at: string
         }
         Insert: {
+          adult_count?: number | null
           client_name: string
           contract_path?: string | null
           created_at?: string
@@ -152,10 +155,12 @@ export type Database = {
           paid_amount?: number
           start_date: string
           status: string
+          tax_amount?: number | null
           total_amount: number
           updated_at?: string
         }
         Update: {
+          adult_count?: number | null
           client_name?: string
           contract_path?: string | null
           created_at?: string
@@ -169,6 +174,7 @@ export type Database = {
           paid_amount?: number
           start_date?: string
           status?: string
+          tax_amount?: number | null
           total_amount?: number
           updated_at?: string
         }
@@ -181,33 +187,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      tax_entries: {
-        Row: {
-          amount: number
-          created_at: string
-          id: string
-          notes: string | null
-          quarter: number
-          year: number
-        }
-        Insert: {
-          amount: number
-          created_at?: string
-          id?: string
-          notes?: string | null
-          quarter: number
-          year: number
-        }
-        Update: {
-          amount?: number
-          created_at?: string
-          id?: string
-          notes?: string | null
-          quarter?: number
-          year?: number
-        }
-        Relationships: []
       }
     }
     Views: {
