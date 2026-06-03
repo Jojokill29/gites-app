@@ -37,11 +37,9 @@ Coeur de l'application. Chaque ligne represente une reservation.
 | `client_name` | TEXT | NOT NULL | Nom affiche sur le calendrier |
 | `start_date` | DATE | NOT NULL | Date d'arrivee |
 | `end_date` | DATE | NOT NULL, CHECK (end_date >= start_date) | Date de depart |
-| `guest_count` | INTEGER | NULLABLE, CHECK (guest_count IS NULL OR guest_count > 0) | Nombre total d'occupants (optionnel : Johan peut enregistrer la reservation sans connaitre encore le nombre). Sert pour les draps et la capacite. |
-| `adult_count` | INTEGER | NULLABLE, CHECK (adult_count IS NULL OR adult_count >= 0) | Nombre d'adultes (ajoute 2026-06-03). Sert au calcul des taxes de sejour declarees a la commune. Distinct de `guest_count` car certaines communes exonerent les enfants. |
+| `guest_count` | INTEGER | NULLABLE, CHECK (guest_count IS NULL OR guest_count > 0) | Nombre d'occupants (optionnel : Johan peut enregistrer la reservation sans connaitre encore le nombre) |
 | `linen_sets_single` | INTEGER | NULLABLE, CHECK (linen_sets_single IS NULL OR linen_sets_single >= 0) | Sets de draps pour lits simples (nullable) |
 | `linen_sets_double` | INTEGER | NULLABLE, CHECK (linen_sets_double IS NULL OR linen_sets_double >= 0) | Sets de draps pour lits doubles (nullable) |
-| `tax_amount` | NUMERIC(10,2) | NULLABLE, CHECK (tax_amount IS NULL OR tax_amount >= 0) | Montant de taxe de sejour pour ce sejour (ajoute 2026-06-03). Saisi par Johan apres chaque sejour. NULL tant que non renseigne. |
 | `total_amount` | NUMERIC(10,2) | NOT NULL, CHECK >= 0 | Montant total en euros |
 | `paid_amount` | NUMERIC(10,2) | NOT NULL, DEFAULT 0, CHECK >= 0 | Montant deja regle |
 | `status` | TEXT | NOT NULL, CHECK IN (...) | Voir liste ci-dessous |
@@ -81,24 +79,37 @@ CREATE INDEX idx_reservations_gite_dates
 
 Table supprimee apres dol&eacute;ance utilisateur du 2026-06-03. Les taxes de sejour sont desormais saisies **par reservation** dans la colonne `reservations.tax_amount`. Migration de suppression : `DROP TABLE tax_entries;`. La table etait vide en production, aucune perte de donnees.
 
-### `annex_stays`
+### `revenue_entries`
 
-Operations isolees pour les locations de l'annexe (ajoutee 2026-06-04). L'annexe n'a pas de calendrier propre ; Johan saisit chaque sejour annexe depuis la section Finances (accordion trimestre, bouton "Ajouter une operation annexe").
+Operations CA saisies manuellement dans l'onglet Finances (ajoutee 2026-06-04 v3). Independante des reservations (Johan saisit pour avoir un suivi, aucun lien automatique). Une operation = un revenu pour un gite donne dans un trimestre donne.
 
 | Colonne | Type | Contraintes | Description |
 |---|---|---|---|
 | `id` | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Identifiant unique |
-| `client_name` | TEXT | NOT NULL | Nom du client de l'annexe |
-| `start_date` | DATE | NOT NULL | Date d'arrivee |
-| `end_date` | DATE | NOT NULL, CHECK (end_date >= start_date) | Date de depart |
-| `guest_count` | INTEGER | NULLABLE, CHECK (guest_count IS NULL OR guest_count > 0) | Nombre total d'occupants |
-| `adult_count` | INTEGER | NULLABLE, CHECK (adult_count IS NULL OR adult_count >= 0) | Nombre d'adultes (taxes) |
-| `paid_amount` | NUMERIC(10,2) | NOT NULL, DEFAULT 0, CHECK >= 0 | CA de l'operation |
-| `tax_amount` | NUMERIC(10,2) | NULLABLE, CHECK (tax_amount IS NULL OR tax_amount >= 0) | Taxe de sejour pour ce sejour annexe |
+| `gite_label` | TEXT | NOT NULL, CHECK IN ('Petit gite', 'Grand gite', 'Annexe') | Nom du gite concerne (3 valeurs autorisees) |
+| `amount` | NUMERIC(10,2) | NOT NULL, CHECK >= 0 | Montant CA en euros |
+| `entry_date` | TEXT | NULLABLE | Date saisie librement par Johan (ex: "14 juillet 2026", "ete 2026") |
+| `year` | INTEGER | NOT NULL, CHECK BETWEEN 2020 AND 2100 | Annee de rattachement (definie par la navigation) |
+| `quarter` | INTEGER | NOT NULL, CHECK BETWEEN 1 AND 4 | Trimestre de rattachement (defini par le contexte du clic dans l'accordion) |
+| `notes` | TEXT | | Commentaire optionnel |
+| `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Horodatage creation (sert au tri ASC dans l'accordion) |
+
+### `tax_stays`
+
+Operations de taxes de sejour saisies manuellement dans l'onglet Finances (ajoutee 2026-06-04 v3). Independante des reservations. Une operation = un sejour declarable a la commune.
+
+| Colonne | Type | Contraintes | Description |
+|---|---|---|---|
+| `id` | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Identifiant unique |
+| `gite_label` | TEXT | NOT NULL, CHECK IN ('Petit gite', 'Grand gite', 'Annexe') | Nom du gite concerne |
+| `stay_dates` | TEXT | NULLABLE | Dates de sejour saisies librement (ex: "14 au 21 juillet") |
+| `nights_count` | INTEGER | NOT NULL, CHECK > 0 | Nombre de nuits |
+| `adult_count` | INTEGER | NOT NULL, CHECK > 0 | Nombre d'adultes |
+| `amount` | NUMERIC(10,2) | NULLABLE, CHECK (amount IS NULL OR amount >= 0) | Montant taxe en euros (optionnel) |
+| `year` | INTEGER | NOT NULL, CHECK BETWEEN 2020 AND 2100 | Annee de rattachement |
+| `quarter` | INTEGER | NOT NULL, CHECK BETWEEN 1 AND 4 | Trimestre de rattachement |
 | `notes` | TEXT | | Commentaire optionnel |
 | `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Horodatage creation |
-
-Pas de contrainte d'exclusion : il n'y a pas de calendrier annexe, donc pas de risque metier de chevauchement.
 
 ### `misc_entries`
 
@@ -255,49 +266,31 @@ const remainingAmount = reservation.total_amount - reservation.paid_amount;
 
 ### Calcul du chiffre d'affaires d'un trimestre
 
-**Regle retenue** (voir decision 1) : le CA d'un trimestre est la somme des `paid_amount` des reservations + des `annex_stays` dont le `start_date` tombe dans le trimestre. Reservation/annex_stay a cheval sur deux trimestres = comptee entierement dans le trimestre de son `start_date`.
+**Refonte 2026-06-04 v3** : le CA n'est plus calcule a partir des reservations. Il est saisi manuellement dans `revenue_entries` (onglet Finances). L'onglet Finances est totalement independant des reservations.
 
 Requete pour les 4 trimestres d'une annee donnee :
 
 ```sql
--- CA des reservations
-SELECT EXTRACT(QUARTER FROM start_date)::int as quarter,
-       COALESCE(SUM(paid_amount), 0) as revenue
-FROM reservations
-WHERE EXTRACT(YEAR FROM start_date) = $1
-GROUP BY EXTRACT(QUARTER FROM start_date);
-
--- CA des annex_stays
-SELECT EXTRACT(QUARTER FROM start_date)::int as quarter,
-       COALESCE(SUM(paid_amount), 0) as revenue
-FROM annex_stays
-WHERE EXTRACT(YEAR FROM start_date) = $1
-GROUP BY EXTRACT(QUARTER FROM start_date);
+SELECT quarter, COALESCE(SUM(amount), 0) as revenue
+FROM revenue_entries
+WHERE year = $1
+GROUP BY quarter
+ORDER BY quarter;
 ```
 
-Les trimestres sans operation ne sont pas retournes ; cote client, initialiser les 4 trimestres a 0 puis additionner les deux resultats.
+Le trimestre est stocke explicitement dans la colonne `quarter` (saisi par contexte de clic dans l'accordion). Pas de calcul a partir d'une date. Les trimestres sans operation retournent 0 cote client (initialisation des 4 trimestres a 0).
 
 ### Agregation taxes de sejour par trimestre
 
-Taxes saisies a la fois sur `reservations.tax_amount` et sur `annex_stays.tax_amount`. Total trimestriel = somme des deux. Meme regle d'attribution (trimestre du `start_date`).
+Taxes saisies dans `tax_stays`. Le trimestre est stocke directement dans la colonne (pas calcule a partir d'une date).
 
 ```sql
--- Taxes des reservations
-SELECT EXTRACT(QUARTER FROM start_date)::int as quarter,
-       COALESCE(SUM(tax_amount), 0) as total_tax
-FROM reservations
-WHERE EXTRACT(YEAR FROM start_date) = $1 AND tax_amount IS NOT NULL
-GROUP BY EXTRACT(QUARTER FROM start_date);
-
--- Taxes des annex_stays
-SELECT EXTRACT(QUARTER FROM start_date)::int as quarter,
-       COALESCE(SUM(tax_amount), 0) as total_tax
-FROM annex_stays
-WHERE EXTRACT(YEAR FROM start_date) = $1 AND tax_amount IS NOT NULL
-GROUP BY EXTRACT(QUARTER FROM start_date);
+SELECT quarter, COALESCE(SUM(amount), 0) as total_tax
+FROM tax_stays
+WHERE year = $1 AND amount IS NOT NULL
+GROUP BY quarter
+ORDER BY quarter;
 ```
-
-Cote client : somme les deux resultats. Pareil pour le CA (inclure `annex_stays.paid_amount`).
 
 ### Agregation notes diverses par trimestre
 

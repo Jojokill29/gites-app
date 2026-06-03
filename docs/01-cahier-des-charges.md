@@ -60,17 +60,17 @@ Informations affichees et editables :
 - Nom du client / de la reservation
 - Gite concerne
 - Date d'arrivee, date de depart
-- Nombre de personnes (optionnel) -- capacite totale, utile pour les draps
-- Nombre d'adultes (optionnel) -- utilise pour le calcul des taxes de sejour declarees a la commune (ajoute 2026-06-03)
+- Nombre de personnes (optionnel)
 - Nombre de sets de draps pour lits simples (optionnel)
 - Nombre de sets de draps pour lits doubles (optionnel)
 - Montant total
 - Montant deja paye
 - **Reste a payer** (calcule automatiquement : total - paye)
-- Montant de taxe de sejour pour ce sejour (optionnel, saisi par Johan apres le sejour, ajoute 2026-06-03)
 - Statut (selecteur avec les 3 valeurs predefinies)
 - Notes libres (texte)
 - Contrat PDF (upload + consultation)
+
+Note : la fiche reservation est totalement independante de l'onglet Finances. Le montant paye ici ne nourrit pas le CA de Finances ; Johan saisit le CA separement dans Finances pour son suivi.
 
 Affichage sur le calendrier : la barre d'une reservation indique le nom du client et un suffixe draps du format `NS MD` (ex: `5S 2D` = 5 sets simples + 2 sets doubles), systematique quand la barre est assez large pour ne pas rogner le nom client ; sinon le suffixe est omis et reste visible dans le tooltip au survol.
 
@@ -90,37 +90,32 @@ Actions possibles :
 
 ### 7. Onglet Finances
 
-**Refonte 2026-06-03 / revisee 2026-06-04** apres dol&eacute;ance utilisateur. CA calcule automatiquement (reservations + operations annexe). Taxes saisies par sejour (sur la fiche reservation) ou par operation annexe isolee (depuis Finances). L'annexe n'a pas de calendrier propre.
+**Refonte 2026-06-04 v3** apres dol&eacute;ance utilisateur. L'onglet Finances est un **journal de saisie manuelle pure**, totalement independant des reservations. Johan saisit chaque operation pour avoir un suivi. Aucune donnee n'est partagee avec la fiche reservation.
 
 - Vue par annee (navigation annee precedente / suivante)
 - Bouton "Annee courante" pour revenir rapidement
 
-**Chiffre d'affaires (calcule automatiquement) :**
-- Pour chaque trimestre, somme des `paid_amount` des `reservations` ET des `annex_stays` dont le `start_date` tombe dans le trimestre (voir decision 1)
-- Mis a jour en temps reel quand une reservation ou une operation annexe est modifiee
+**Trois types d'operations saisies manuellement :**
 
-**Taxes de sejour (saisies par operation) :**
-- Pour une r&eacute;servation g&icirc;te : Johan renseigne `tax_amount` dans la fiche reservation apres le sejour
-- Pour l'annexe : Johan saisit une **operation isolee** depuis l'accordion Finances (modale dediee, table `annex_stays`)
-- Total trimestriel = somme des `tax_amount` des `reservations` + des `annex_stays` du trimestre
-
-**Notes financieres libres (saisies manuellement) :**
-- Pour corrections, remboursements, frais exceptionnels
-- Label, montant (peut etre negatif), trimestre, notes optionnelles
-- Stockees dans `misc_entries`, comptees comme metrique distincte (n'impactent pas le CA)
+1. **Operations CA** (table `revenue_entries`) : gite (Petit / Grand / Annexe) + montant + date (texte libre) + notes optionnelles. Year et quarter rattaches au contexte de clic dans l'accordion.
+2. **Operations Taxes de sejour** (table `tax_stays`) : gite + dates (texte libre) + nb nuits + nb adultes + montant (optionnel) + notes. Year et quarter aussi par contexte.
+3. **Notes diverses** (table `misc_entries`) : corrections, remboursements, frais exceptionnels. Label + montant (peut etre negatif) + notes.
 
 **4 metriques annuelles affichees :**
-- CA annuel
-- Taxes de sejour annuelles
-- Notes diverses annuelles (en rouge si negatif)
-- Nombre de reservations (par `start_date` dans l'annee)
+- Total CA annuel
+- Total Taxes de sejour annuelles (uniquement operations avec montant renseigne)
+- Total Notes diverses annuelles
+- Nombre d'operations enregistrees dans l'annee (toutes tables confondues)
 
 **Tableau trimestriel :**
 - 4 colonnes : Trimestre / CA / Taxes / Notes diverses
-- Le trimestre en cours est mis en evidence (uniquement pour l'annee courante)
-- **Clic sur une ligne trimestre** : developpe inline un accordion avec deux sous-sections :
-  - **Sejours du trimestre** : tableau **lecture seule** melangeant `reservations` et `annex_stays` du trimestre, triees par date d'arrivee. Colonnes : date + client, lieu (pill couleur Petit g&icirc;te / Grand g&icirc;te / Annexe), nuits, adultes, CA, taxe, lien vers la fiche complete. Pour modifier : passer par la fiche reservation (ou la modale annexe pour les operations isolees). Bouton "+ Ajouter une operation annexe" en bas de la section.
-  - **Notes diverses du trimestre** : liste des `misc_entries` avec ajout / modification / suppression.
+- Trimestre courant mis en evidence (uniquement annee courante)
+- **Clic sur une ligne trimestre** : developpe un accordion avec **3 sections** :
+  - "Chiffre d'affaires" : liste des `revenue_entries` du trimestre + bouton "+ Ajouter une operation CA"
+  - "Taxes de sejour" : liste des `tax_stays` du trimestre + bouton "+ Ajouter une operation Taxe"
+  - "Notes diverses" : liste des `misc_entries` du trimestre + bouton "+ Ajouter une note"
+- Les listes sont triees par ordre de saisie (`created_at` ASC, plus ancienne en haut).
+- Edition et suppression de chaque operation via modales dediees (pas d'edition inline).
 
 Reference visuelle : `docs/maquette-finances-v2.html`.
 
