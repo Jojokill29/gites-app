@@ -2,6 +2,7 @@ import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Button from '../ui/Button'
+import ContractField from '../contracts/ContractField'
 import { LABELS } from '../../constants/labels'
 import { STATUSES } from '../../constants/statuses'
 import type { Reservation } from '../../types/domain'
@@ -46,6 +47,11 @@ interface ReservationFormProps {
   error: string | null
   saving: boolean
   deleting: boolean
+  contractCurrentPath: string | null
+  contractPendingPath: string | null
+  pendingRemoval: boolean
+  onContractUploaded: (path: string) => void
+  onContractRemoveRequested: () => void
   onSubmit: (data: ReservationFormData) => void
   onDelete?: () => void
   onCancel: () => void
@@ -74,6 +80,11 @@ export default function ReservationForm({
   error: serverError,
   saving,
   deleting,
+  contractCurrentPath,
+  contractPendingPath,
+  pendingRemoval,
+  onContractUploaded,
+  onContractRemoveRequested,
   onSubmit,
   onDelete,
   onCancel,
@@ -278,6 +289,30 @@ export default function ReservationForm({
           })}
           className={`${inputClass} resize-y`}
         />
+      </div>
+
+      {/* Contract */}
+      <div className="mb-4">
+        {pendingRemoval ? (
+          <div>
+            <span className="block text-[12px] font-medium text-text-secondary mb-1">
+              {LABELS.contracts.fieldTitle}
+            </span>
+            <p className="text-[13px] text-text-secondary mb-2">
+              {LABELS.contracts.removalPending}
+            </p>
+            <Button type="button" onClick={onContractRemoveRequested}>
+              {LABELS.cancel}
+            </Button>
+          </div>
+        ) : (
+          <ContractField
+            currentPath={contractCurrentPath}
+            pendingPath={contractPendingPath}
+            onUploaded={onContractUploaded}
+            onRemoveRequested={onContractRemoveRequested}
+          />
+        )}
       </div>
 
       {/* Actions */}
