@@ -118,7 +118,6 @@ export default function ContractPreviewModal({
             <iframe
               src={signedUrl}
               title="Aperçu du contrat"
-              sandbox="allow-same-origin"
               className="w-full h-full border-0 rounded-[8px]"
             />
           )}
