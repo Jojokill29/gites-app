@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm, type Resolver } from 'react-hook-form'
+import { useForm, Controller, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Modal from '../ui/Modal'
@@ -8,6 +8,7 @@ import Button from '../ui/Button'
 import { LABELS } from '../../constants/labels'
 import { supabase } from '../../lib/supabase'
 import type { TaxStay, Quarter, GiteLabel } from '../../types/domain'
+import DateMaskedInput from './DateMaskedInput'
 
 const GITE_OPTIONS: GiteLabel[] = ['Le Vallon', 'La Salmonière', 'Annexe']
 
@@ -52,7 +53,7 @@ export default function TaxStayModal({ mode, entry, year, quarter, onClose, onSu
   const [error, setError] = useState<string | null>(null)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, control, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: isEdit && entry
       ? {
@@ -116,7 +117,18 @@ export default function TaxStayModal({ mode, entry, year, quarter, onClose, onSu
 
           <div className="mb-3">
             <label className={labelClass}>{LABELS.datesField}</label>
-            <input type="text" placeholder="ex: 14 au 21 juillet" {...register('stay_dates')} className={inputClass} />
+            <Controller
+              name="stay_dates"
+              control={control}
+              render={({ field }) => (
+                <DateMaskedInput
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  name={field.name}
+                  className={inputClass}
+                />
+              )}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-3">

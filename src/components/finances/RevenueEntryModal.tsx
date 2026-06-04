@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm, type Resolver } from 'react-hook-form'
+import { useForm, Controller, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Modal from '../ui/Modal'
@@ -8,6 +8,7 @@ import Button from '../ui/Button'
 import { LABELS } from '../../constants/labels'
 import { supabase } from '../../lib/supabase'
 import type { RevenueEntry, Quarter, GiteLabel } from '../../types/domain'
+import DateMaskedInput from './DateMaskedInput'
 
 const GITE_OPTIONS: GiteLabel[] = ['Le Vallon', 'La Salmonière', 'Annexe']
 
@@ -40,7 +41,7 @@ export default function RevenueEntryModal({ mode, entry, year, quarter, onClose,
   const [error, setError] = useState<string | null>(null)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, control, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: isEdit && entry
       ? { gite_label: entry.gite_label as GiteLabel, amount: Number(entry.amount), entry_date: entry.entry_date ?? '', notes: entry.notes ?? '' }
@@ -94,7 +95,18 @@ export default function RevenueEntryModal({ mode, entry, year, quarter, onClose,
 
           <div className="mb-3">
             <label className={labelClass}>{LABELS.dateField}</label>
-            <input type="text" placeholder="ex: 14 juillet" {...register('entry_date')} className={inputClass} />
+            <Controller
+              name="entry_date"
+              control={control}
+              render={({ field }) => (
+                <DateMaskedInput
+                  value={field.value ?? ''}
+                  onChange={field.onChange}
+                  name={field.name}
+                  className={inputClass}
+                />
+              )}
+            />
           </div>
 
           <div className="mb-4">
