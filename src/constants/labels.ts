@@ -96,14 +96,37 @@ export const LABELS = {
 
   // Invoices
   invoicesTitle: 'Factures',
-  uploadInvoice: 'Téléverser une facture',
+  uploadInvoice: 'Ajouter une facture',
   downloadZip: 'Télécharger le ZIP du trimestre',
   invoiceFile: 'Fichier (JPEG, PNG ou PDF)',
   invoiceName: 'Nom de la facture',
   invoiceDate: 'Date de la facture',
+  invoiceNotes: 'Notes (optionnel)',
   previousQuarter: 'Trimestre précédent',
   nextQuarter: 'Trimestre suivant',
   confirmDeleteInvoice: 'Confirmer la suppression de cette facture ?',
+  noInvoicesQuarter: 'Aucune facture ce trimestre.',
+  invoiceAddCard: 'Ajouter une facture',
+  invoiceHelperText: 'Cliquer pour agrandir ou supprimer.',
+  invoicePreviewLoading: 'Chargement de la facture…',
+  invoicePreviewClose: 'Fermer',
+  invoicePreviewOpenInNewTab: 'Ouvrir dans un nouvel onglet',
+  invoicePreviewErrorLoad: 'Impossible d\'afficher la facture. Essayez de l\'ouvrir dans un nouvel onglet.',
+  invoiceUploadSuccess: 'Facture ajoutée avec succès.',
+  invoiceDeleteSuccess: 'Facture supprimée.',
+  invoiceDeleteError: 'La suppression a échoué. Réessayez.',
+  invoiceZipGenerating: 'Génération du ZIP…',
+  invoiceZipError: 'Échec de la génération du ZIP. Réessayez.',
+  invoices: {
+    errors: {
+      invalidType: 'Format non supporté. Utilisez JPEG, PNG ou PDF.',
+      fileTooLarge: 'Le fichier dépasse 10 Mo. Réduisez sa taille avant de réessayer.',
+      uploadFailed: 'Le téléversement a échoué. Vérifiez votre connexion et réessayez.',
+      dateRequired: 'La date est obligatoire.',
+      dateInvalid: 'Date invalide. Utilisez le format jj/mm/aaaa.',
+      nameRequired: 'Le nom est obligatoire.',
+    },
+  },
 
   // Export
   exportTitle: 'Export des données',
