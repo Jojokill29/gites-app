@@ -70,18 +70,19 @@ export default function InvoiceUploadModal({ onClose, onSuccess }: Props) {
       setFormError(L.nameRequired)
       return
     }
+    // Date is optional — fall back to today if left empty
+    let isoDate: string
     if (!date) {
-      setFormError(L.dateRequired)
-      return
+      const today = new Date()
+      isoDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    } else {
+      const parsed = parse(date, 'dd/MM/yyyy', new Date())
+      if (!isValid(parsed)) {
+        setFormError(L.dateInvalid)
+        return
+      }
+      isoDate = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`
     }
-    // Parse date from dd/MM/yyyy to YYYY-MM-DD
-    const parsed = parse(date, 'dd/MM/yyyy', new Date())
-    if (!isValid(parsed)) {
-      setFormError(L.dateInvalid)
-      return
-    }
-    // Format to ISO date string (YYYY-MM-DD)
-    const isoDate = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`
 
     setSaving(true)
     let storagePath: string | null = null
