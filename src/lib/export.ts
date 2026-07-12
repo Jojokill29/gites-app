@@ -315,3 +315,42 @@ export function downloadBlob(blob: Blob, filename: string): void {
   a.click()
   URL.revokeObjectURL(url)
 }
+
+// ---------------------------------------------------------------------------
+// Invoice ZIP builder (quarter export)
+// ---------------------------------------------------------------------------
+
+/** Replace characters invalid in filenames across major OS. */
+function sanitizeFilename(name: string): string {
+  return name.replace(/[/\\?%*:|"<>]/g, '-').trim() || 'facture'
+}
+
+/**
+ * Build a ZIP of invoice files for a given quarter.
+ * Files are downloaded sequentially; missing files are skipped silently.
+ * Duplicate names are deduplicated with a numeric suffix (-2, -3…).
+ */
+export async function buildInvoicesZip(
+  invoices: Array<{ file_path: string; name: string }>,
+): Promise<Blob> {
+  const zip = new JSZip()
+  // Track how many times each sanitized base name has been used
+  const usedNames = new Map<string, number>()
+
+  for (const invoice of invoices) {
+    try {
+      const blob = await downloadFile('invoices', invoice.file_path)
+      const ext = invoice.file_path.split('.').pop() ?? ''
+      const base = sanitizeFilename(invoice.name)
+      const key = `${base}.${ext}`
+      const count = usedNames.get(key) ?? 0
+      usedNames.set(key, count + 1)
+      const filename = count === 0 ? `${base}.${ext}` : `${base}-${count + 1}.${ext}`
+      zip.file(filename, blob)
+    } catch (err) {
+      console.error('Skipping missing invoice in ZIP:', invoice.file_path, err)
+    }
+  }
+
+  return zip.generateAsync({ type: 'blob' })
+}
