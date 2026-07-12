@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "Bash(rtk git:*)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)",
+      "mcp__claude_ai_Vercel__list_teams",
+      "mcp__claude_ai_Vercel__list_projects",
+      "mcp__claude_ai_Vercel__list_deployments",
+      "Bash(find '/c/Users/adrip/Documents/Claude/Projects/Application Gestion Gite Johan Simon/gites/src/components' -type f -name *.tsx -o -name *.ts)",
+      "Bash(rtk npx:*)",
+      "Bash(rtk npm:*)",
+      "Bash(npx supabase:*)",
+      "Bash(cd:*)"
+    ]
+  }
+}

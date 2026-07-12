@@ -1,7 +1,7 @@
-import { STATUSES } from '../../constants/statuses'
 import { LABELS } from '../../constants/labels'
 import type { SegmentType } from '../../utils/calendar'
 import type { Reservation } from '../../types/domain'
+import type { StatusKey } from '../../constants/statuses'
 import { differenceInDays, parseISO } from 'date-fns'
 
 interface CalendarEventProps {
@@ -16,6 +16,15 @@ const segmentStyles: Record<SegmentType, string> = {
   middle: 'rounded-none ml-[-6px] mr-[-6px]',
   end: 'rounded-l-none rounded-r-[4px] ml-[-6px]',
   single: 'rounded-[4px]',
+}
+
+// Tinted status treatment — colours resolve from CSS variables, so both the
+// light and dark palettes are handled automatically. The leading edge of a
+// reservation gets a 3px accent in the full status colour.
+const STATUS_TINT: Record<StatusKey, { fill: string; edge: string }> = {
+  pending_contract: { fill: 'bg-status-red-bg text-status-red-text', edge: 'border-status-red' },
+  pending_deposit: { fill: 'bg-status-orange-bg text-status-orange-text', edge: 'border-status-orange' },
+  deposit_paid: { fill: 'bg-status-green-bg text-status-green-text', edge: 'border-status-green' },
 }
 
 /** Check if a reservation is missing its contract file */
@@ -52,8 +61,12 @@ export default function CalendarEvent({
   showName,
   onClick,
 }: CalendarEventProps) {
-  const status = STATUSES[reservation.status]
+  const tint = STATUS_TINT[reservation.status]
   const linenSuffix = buildLinenSuffix(reservation)
+
+  // Leading edge accent shown on the first visible segment of the reservation
+  const isEdge = type === 'start' || type === 'single'
+  const edgeClass = isEdge ? `border-l-[3px] ${tint.edge}` : ''
 
   // Show indicator on the first visible segment only (same logic as showName,
   // which covers start, single, and middle when it's the first visible in month)
@@ -74,9 +87,8 @@ export default function CalendarEvent({
 
   return (
     <div
-      className={`flex items-center px-1.5 py-0.5 text-[10px] font-medium mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden max-sm:text-[9px] max-sm:px-1 max-sm:py-px ${segmentStyles[type]}`}
+      className={`flex items-center px-1.5 py-0.5 text-[10px] font-medium mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden max-sm:text-[9px] max-sm:px-1 max-sm:py-px ${tint.fill} ${edgeClass} ${segmentStyles[type]}`}
       data-reservation
-      style={{ backgroundColor: status.color, color: '#000000' }}
       onClick={(e) => {
         e.stopPropagation()
         onClick()

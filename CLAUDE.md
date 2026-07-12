@@ -14,6 +14,8 @@ Application web de gestion de reservations pour deux gites (22 et 15 personnes).
 
 Comportement attendu pendant les sessions :
 
+- **Une seule instance Claude Code sur ce projet a la fois.** Ne pas lancer une seconde instance dans un autre terminal en parallele. Deux instances qui ecrivent sur les memes fichiers se sont deja ecrasees mutuellement (incident 2026-06-03 : un fichier tronque au milieu d'une ligne, code qui ne compile plus). Si Adrien a besoin de paralleliser, il doit creer une branche Git separee via `git worktree`.
+- **Workflow valide par Adrien (2026-06-03)** : pas de pause de validation entre les lots de commits a l'interieur d'une etape. Claude Code fait ses commits localement, pousse a la fin de l'etape, Adrien teste directement sur Vercel. Pas de tests `npm run dev` en local sauf cas exceptionnel ou demande explicite.
 - **Avant de demarrer une etape majeure**, faire une courte synthese de ce que tu vas faire et demander validation
 - **Avant de creer plus de 3 nouveaux fichiers d'un coup**, demander confirmation
 - **Avant d'installer une nouvelle dependance npm**, demander confirmation et expliquer pourquoi elle est necessaire
@@ -92,6 +94,29 @@ Jamais via le SQL Editor du dashboard Supabase. Toujours via `npx supabase migra
 
 ---
 
+## Pieges frontend a connaitre absolument
+
+### `<input type="number">` vide renvoie NaN, pas undefined
+
+Sur un input number HTML vide (champ optionnel non rempli), la valeur lue par `valueAsNumber` ou `parseFloat` est `NaN`, pas `undefined` ni `""`. Zod refuse `NaN` par defaut sur `z.number()`, ce qui declenche l'erreur `Invalid input: expected number, received NaN` meme avec `.optional()`.
+
+Le bon pattern pour un champ number optionnel :
+
+```typescript
+guest_count: z.preprocess(
+  (v) => (v === '' || v === null || Number.isNaN(v) ? undefined : v),
+  z.coerce.number().int().positive().optional(),
+),
+```
+
+Cote INSERT/UPDATE Supabase, envoyer `null` (pas `0`, pas `""`) quand la valeur est `undefined`, pour respecter les colonnes nullable.
+
+### Iframe vers Supabase Storage : pas de sandbox
+
+Une URL signee Supabase Storage pointe vers `*.supabase.co`, cross-origin par rapport au front sur Vercel. Mettre `sandbox="allow-same-origin"` sur un iframe pointant vers cette URL provoque le blocage Chrome "Cette page a ete bloquee par Chrome". Pour afficher un PDF du Storage dans un iframe, ne pas mettre d'attribut `sandbox`. Le risque est tres faible : les contenus sont uploades par les utilisateurs eux-memes dans leur propre bucket prive avec URL signee.
+
+---
+
 ## Structure du projet
 
 ```
@@ -163,12 +188,16 @@ supabase/
 - `deposit_paid` -> vert (#5DCAA5, texte #085041, fond #E1F5EE) -- "Acompte paye"
 - Mapping centralise dans `constants/statuses.ts` et `utils/status.ts`
 
-### Contrats PDF
-- Stockes dans le bucket Supabase Storage `contracts` sous `contracts/{uuid}.pdf` (UUID genere a l'upload, pas le nom utilisateur)
+### Contrats (PDF + images)
+- Stockes dans le bucket Supabase Storage `contracts` sous `contracts/{uuid}.{ext}` ou `ext` ∈ {`pdf`, `jpg`, `png`} (UUID genere a l'upload, pas le nom utilisateur ; extension derivee du type MIME, pas du nom original)
 - Path complet stocke dans `reservations.contract_path`
+- Taille max a l'upload : 10 Mo avant compression. Types acceptes : `application/pdf`, `image/jpeg`, `image/png`.
+- Images JPG/PNG compressees cote client avant upload via `browser-image-compression` (qualite 0.8, max 2000px), comme pour le bucket `invoices`
 - Acces via URLs signees (duree 10 min), jamais d'URL publique
 - Un seul contrat par reservation, remplacement supprime l'ancien fichier
 - Suppression d'une reservation = suppression du contrat dans Storage (gere cote code, pas de cascade)
+- Apercu interne via composant `ContractPreviewModal` (lightbox) : iframe pour les PDF (sans `sandbox`, cf. pieges frontend), balise `<img>` pour les images. Lien repli "Ouvrir dans un nouvel onglet" toujours present en bas de la lightbox.
+- Toute interaction avec le bucket `contracts` passe par `src/lib/storage.ts` (jamais d'appel direct a `supabase.storage` ailleurs).
 
 ### Factures
 - Stockees dans le bucket `invoices` sous `invoices/{uuid}.{ext}`
@@ -189,7 +218,7 @@ supabase/
 
 ### Tables (toutes en anglais)
 - `gites` (id, name, capacity, display_order)
-- `reservations` (id, gite_id, client_name, start_date, end_date, guest_count, linen_sets, total_amount, paid_amount, status, notes, contract_path)
+- `reservations` (id, gite_id, client_name, start_date, end_date, guest_count [nullable], linen_sets_single [nullable], linen_sets_double [nullable], total_amount, paid_amount, status, notes, contract_path)
 - `tax_entries` (id, amount, year, quarter, notes)
 - `misc_entries` (id, label, amount, year, quarter, notes)
 - `invoices` (id, name, file_path, invoice_date, notes)

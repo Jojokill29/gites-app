@@ -82,6 +82,8 @@ Claude Code peut creer ce fichier avec le contenu ci-dessous. La structure exact
 - Onglet Finances : "Finances"
 - Onglet Factures : "Factures"
 - Onglet Export : "Export"
+- Bouton bascule theme clair : "Passer en mode sombre"
+- Bouton bascule theme sombre : "Passer en mode clair"
 
 ### Authentification (LoginPage)
 
@@ -111,8 +113,9 @@ Claude Code peut creer ce fichier avec le contenu ci-dessous. La structure exact
 - Champ gite : "Gite"
 - Champ date arrivee : "Date d'arrivee"
 - Champ date depart : "Date de depart"
-- Champ nombre personnes : "Nombre de personnes"
-- Champ sets draps : "Sets de draps"
+- Champ nombre personnes : "Nombre de personnes" (optionnel)
+- Champ sets draps lits simples : "Sets de draps (lits simples)"
+- Champ sets draps lits doubles : "Sets de draps (lits doubles)"
 - Champ montant total : "Montant total (EUR)"
 - Champ montant paye : "Montant deja paye (EUR)"
 - Affichage reste a payer : "Reste a payer :"
@@ -249,6 +252,61 @@ En cas de divergence entre les maquettes et une autre doc, **les docs 01 a 05 fo
 Les autres couleurs (statuts, texte, accents, bordures) ne changent pas. Les maquettes HTML (`maquettes-gites.html`) ne sont volontairement pas mises a jour (document fige).
 
 Verification de contraste effectuee : texte principal OK (>11:1), couleurs de statut non affectees (fond propre), texte secondaire pre-existant en dessous de 4.5:1 (non aggrave par ce changement).
+
+---
+
+## 11. Champ "Nombre de personnes" rendu optionnel (2026-04-17)
+
+**Decision retenue** : `guest_count` devient nullable en base et non requis cote formulaire.
+
+**Raison** : demande de Johan apres retour d'usage. Cas typique : une reservation est enregistree au moment de l'acompte, le nombre final d'occupants n'est pas encore connu (groupe, famille qui complete la liste plus tard). Forcer le champ obligeait a saisir une valeur fictive puis a la corriger, ce qui genere des erreurs.
+
+**Consequences** :
+- Migration Supabase : `ALTER TABLE reservations ALTER COLUMN guest_count DROP NOT NULL` + remplacement de `CHECK (guest_count > 0)` par `CHECK (guest_count IS NULL OR guest_count > 0)`.
+- Zod : le champ passe en `z.number().int().positive().optional()`.
+- UI : label sans asterisque, placeholder "optionnel".
+- Affichage lecture : si `null`, afficher un tiret ou ne rien afficher selon le contexte.
+
+---
+
+## 12. Sets de draps : split lits simples / lits doubles + affichage calendrier (2026-04-17)
+
+**Decision retenue** : remplacer la colonne `linen_sets` (entier unique) par deux colonnes `linen_sets_single` et `linen_sets_double`, toutes deux nullables et >= 0.
+
+**Raison** : demande de Johan. La distinction est necessaire pour preparer les lits correctement avant chaque arrivee, un compte global ne sert a rien en pratique.
+
+**Affichage calendrier** : le suffixe des barres reservation est du format `NS MD` (N = nombre simples, M = nombre doubles), ex: `5S 2D`.
+- Affichage systematique quand les deux valeurs sont renseignees ET que la barre est assez large pour l'afficher sans rogner le nom du client.
+- Si une seule valeur est renseignee : afficher uniquement celle-la (ex: `5S` ou `2D`).
+- Si aucune valeur n'est renseignee : rien n'est affiche (pas de `0S 0D`).
+- Si l'espace est insuffisant (barre courte, mobile 375px) : le suffixe est omis et reste visible dans le tooltip HTML au survol, deja implemente a l'etape 5. Priorite au nom client.
+
+**Consequences** :
+- Migration Supabase : ajout des deux nouvelles colonnes, copie des valeurs de `linen_sets` vers `linen_sets_double` par defaut (decision arbitraire : la valeur historique compte comme doubles par defaut), puis `DROP COLUMN linen_sets`. En l'occurrence la base a ete nettoyee apres validation de l'etape 6, donc il n'y a pas de donnees a migrer : on peut faire un simple `ADD COLUMN` + `DROP COLUMN`.
+- Zod : deux champs `z.number().int().min(0).optional()`.
+- UI formulaire : deux inputs distincts, cote a cote sur desktop, empiles sur mobile.
+- Calendrier : logique d'affichage du suffixe dans `CalendarEvent.tsx`, tooltip mis a jour.
+- Types TS : regeneration via `npm run generate:types`.
+
+---
+
+## 13. Theme sombre : toggle manuel + defaut preference systeme (2026-04-17)
+
+**Decision retenue** : l'application expose un theme clair (actuel) et un theme sombre, avec :
+- **Au premier chargement** : lecture de `window.matchMedia('(prefers-color-scheme: dark)')` pour choisir le theme initial.
+- **Toggle manuel** : un bouton (icone soleil / lune) dans la TopBar bascule entre les deux themes.
+- **Persistance** : le choix manuel est stocke dans `localStorage` sous la cle `gites-theme` (valeurs `'light'` ou `'dark'`). Si la cle existe, elle prime sur `prefers-color-scheme`.
+- **Pas de synchro dynamique** : changer la preference systeme en cours de session ne bascule pas l'app automatiquement. Simplicite v1.
+
+**Raison** : demande de Johan ("l'affichage actuel abime trop les yeux"). Pattern standard et eprouve.
+
+**Implementation** :
+- Nouveaux design tokens `@theme` dans `src/index.css` : version dark de `--bg`, `--surface`, `--text`, `--border`, et des tokens derives. Les 3 couleurs de statut (rouge, orange, vert) sont revues pour rester accessibles en mode sombre (WCAG AA contre le fond dark), sans changer leur identite visuelle.
+- Classe racine `.dark` appliquee sur `<html>` via un petit hook `useTheme()` ; Tailwind v4 est deja configure pour generer les variantes `dark:` a partir d'une classe parente (ou via `prefers-color-scheme` seulement -- a adapter).
+- Bouton dans la TopBar : composant `ui/ThemeToggle.tsx` reutilisant le `Button` extrait lors du nettoyage post-etape 6.
+- Verifications : les 5 pages (Calendar, Finances, Invoices, Export, Login) + les 3 modales (Reservation, Confirm, future Contrat) restent lisibles en mode sombre. Les barres de statut du calendrier doivent rester reconnaissables.
+
+**Hors perimetre v1** : theme auto qui bascule selon l'heure, theme haute-contraste, themes personnalises.
 
 ---
 

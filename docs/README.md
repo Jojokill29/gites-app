@@ -16,6 +16,7 @@ Utilisateurs : Johan (Djo) et Quentin (Coltan), avec droits identiques.
 | [04-plan-developpement.md](./04-plan-developpement.md) | Etapes de developpement |
 | [05-decisions-a-trancher.md](./05-decisions-a-trancher.md) | Decisions finales, contenus FR, messages d'erreur, reference maquettes |
 | [maquettes-gites.html](./maquettes-gites.html) | Maquettes HTML des 4 vues principales |
+| [directives/](./directives/) | Directives detaillees a transmettre a Claude Code, une par etape de developpement |
 | [CLAUDE.md](../CLAUDE.md) | Instructions pour Claude Code (a la racine du projet) |
 
 ---

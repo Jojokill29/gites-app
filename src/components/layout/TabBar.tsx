@@ -40,7 +40,7 @@ export default function TabBar({ gites, loading, error }: TabBarProps) {
   const tabClass = ({ isActive }: { isActive: boolean }) =>
     `shrink-0 px-[18px] py-3.5 text-[13px] font-normal border-b-2 cursor-pointer whitespace-nowrap transition-colors ${
       isActive
-        ? 'text-text font-medium border-text'
+        ? 'text-text font-medium border-status-blue'
         : 'text-text-secondary border-transparent hover:text-text'
     } max-sm:py-3 max-sm:px-3.5 max-sm:text-[12px]`
 

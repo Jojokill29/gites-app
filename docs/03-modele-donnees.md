@@ -18,13 +18,13 @@ Definit les gites geres par l'application. Demarre avec deux entrees, peut en ac
 | `display_order` | INTEGER | NOT NULL, DEFAULT 0 | Ordre dans la TabBar (utilise pour tri ASC) |
 | `created_at` | TIMESTAMPTZ | NOT NULL, DEFAULT now() | Horodatage creation |
 
-Contenu initial (seed, revise 2026-06-04 apres swap demande par Adrien) :
-- Petit gite, capacity 15, display_order 1 (affiche en premier dans la TabBar)
-- Grand gite, capacity 22, display_order 2
+Contenu initial (seed, revise 2026-06-04 v3 apres confirmation Adrien) :
+- Le Vallon, capacity 15, display_order 1 (affiche en premier dans la TabBar) -- anciennement "Petit gite" dans la v0
+- La Salmoniere, capacity 22, display_order 2 -- anciennement "Grand gite" dans la v0
 
-Note : sur le site existant, ces gites sont aussi connus sous les noms "Salmoniere" (15p) et "Valon" (22p). Le swap display_order vise a coller a l'ordre d'affichage du site.
+Note : les vrais noms des gites sont "Le Vallon" (15p) et "La Salmoniere" (22p) selon le site moulinlasalmoniere.fr. Stockes sans accent en BDD (`'La Salmoniere'`) pour eviter les problemes d'encodage ; l'UI affiche "La Salmonière" avec accent via un mapping cote front (`displayGiteLabel`).
 
-L'annexe n'est PAS un troisieme gite. Elle est traitee comme des operations isolees saisies depuis la section Finances (voir table `annex_stays` plus bas). Pas de calendrier propre.
+L'annexe n'est PAS un troisieme gite (pas dans cette table). Elle est traitee comme une valeur de label dans les operations Finances (voir tables `revenue_entries` et `tax_stays`). Pas de calendrier propre.
 
 ### `reservations`
 
@@ -86,7 +86,7 @@ Operations CA saisies manuellement dans l'onglet Finances (ajoutee 2026-06-04 v3
 | Colonne | Type | Contraintes | Description |
 |---|---|---|---|
 | `id` | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Identifiant unique |
-| `gite_label` | TEXT | NOT NULL, CHECK IN ('Petit gite', 'Grand gite', 'Annexe') | Nom du gite concerne (3 valeurs autorisees) |
+| `gite_label` | TEXT | NOT NULL, CHECK IN ('Le Vallon', 'La Salmoniere', 'Annexe') | Nom du gite concerne (3 valeurs autorisees) |
 | `amount` | NUMERIC(10,2) | NOT NULL, CHECK >= 0 | Montant CA en euros |
 | `entry_date` | TEXT | NULLABLE | Date saisie librement par Johan (ex: "14 juillet 2026", "ete 2026") |
 | `year` | INTEGER | NOT NULL, CHECK BETWEEN 2020 AND 2100 | Annee de rattachement (definie par la navigation) |
@@ -101,7 +101,7 @@ Operations de taxes de sejour saisies manuellement dans l'onglet Finances (ajout
 | Colonne | Type | Contraintes | Description |
 |---|---|---|---|
 | `id` | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Identifiant unique |
-| `gite_label` | TEXT | NOT NULL, CHECK IN ('Petit gite', 'Grand gite', 'Annexe') | Nom du gite concerne |
+| `gite_label` | TEXT | NOT NULL, CHECK IN ('Le Vallon', 'La Salmoniere', 'Annexe') | Nom du gite concerne |
 | `stay_dates` | TEXT | NULLABLE | Dates de sejour saisies librement (ex: "14 au 21 juillet") |
 | `nights_count` | INTEGER | NOT NULL, CHECK > 0 | Nombre de nuits |
 | `adult_count` | INTEGER | NOT NULL, CHECK > 0 | Nombre d'adultes |

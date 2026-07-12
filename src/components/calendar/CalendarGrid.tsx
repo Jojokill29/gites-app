@@ -39,7 +39,7 @@ export default function CalendarGrid({
 
   return (
     <div
-      className={`bg-surface border border-border rounded-[14px] overflow-hidden transition-opacity ${
+      className={`bg-surface border border-border rounded-[10px] overflow-hidden transition-opacity ${
         loading ? 'opacity-60' : ''
       }`}
     >

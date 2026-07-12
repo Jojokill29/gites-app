@@ -29,7 +29,7 @@ Fournir un outil fiable, multi-appareil, permettant de gerer les reservations de
 
 ### 2. Calendriers (un onglet par gite)
 
-- Deux onglets distincts : "Grand gite (22p)" et "Petit gite (15p)"
+- Deux onglets distincts : "Le Vallon (15p)" et "La Salmoniere (22p)" (renommes 2026-06-04 -- noms officiels du site moulinlasalmoniere.fr)
 - Vue mensuelle en grille (semaine / jours)
 - Navigation mois precedent / mois suivant
 - Bouton "Aller a aujourd'hui" pour revenir rapidement au mois courant
@@ -97,7 +97,7 @@ Actions possibles :
 
 **Trois types d'operations saisies manuellement :**
 
-1. **Operations CA** (table `revenue_entries`) : gite (Petit / Grand / Annexe) + montant + date (texte libre) + notes optionnelles. Year et quarter rattaches au contexte de clic dans l'accordion.
+1. **Operations CA** (table `revenue_entries`) : gite (Le Vallon / La Salmonière / Annexe) + montant + date (texte libre) + notes optionnelles. Year et quarter rattaches au contexte de clic dans l'accordion.
 2. **Operations Taxes de sejour** (table `tax_stays`) : gite + dates (texte libre) + nb nuits + nb adultes + montant (optionnel) + notes. Year et quarter aussi par contexte.
 3. **Notes diverses** (table `misc_entries`) : corrections, remboursements, frais exceptionnels. Label + montant (peut etre negatif) + notes.
 

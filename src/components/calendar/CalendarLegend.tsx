@@ -9,7 +9,7 @@ export default function CalendarLegend() {
           className="flex items-center gap-1.5 text-[12px] text-text-secondary"
         >
           <div
-            className="w-2.5 h-2.5 rounded-[3px] shrink-0"
+            className="w-2.5 h-2.5 rounded-full shrink-0"
             style={{ backgroundColor: status.color }}
           />
           {status.label}

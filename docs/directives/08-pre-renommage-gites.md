@@ -12,7 +12,11 @@ Les gîtes sont actuellement nommés "Petit gîte" (15p) et "Grand gîte" (22p) 
 
 ## Travail à faire
 
-### Migration BDD unique
+### 1. Vérifier si une migration existe déjà
+
+Si une précédente session Claude Code a déjà créé un fichier `supabase/migrations/*rename_gites*.sql` ou similaire **sans l'avoir appliqué**, ne pas en recréer un — passer directement à l'étape 3 (application).
+
+### 2. Créer la migration (si aucune existante)
 
 Créer `supabase/migrations/YYYYMMDDHHMMSS_rename_gites.sql` :
 
@@ -21,9 +25,34 @@ UPDATE gites SET name = 'Le Vallon', display_order = 1 WHERE name = 'Petit gite'
 UPDATE gites SET name = 'La Salmonière', display_order = 2 WHERE name = 'Grand gite';
 ```
 
-Les accents UTF-8 passent sans souci côté PostgreSQL / Supabase. Pas de mapping côté front nécessaire.
+Les accents UTF-8 passent sans souci côté PostgreSQL / Supabase.
 
-### Pas de modification de code
+### 3. **APPLIQUER** la migration sur la BDD Supabase de production (étape critique)
+
+Créer un fichier de migration ne suffit pas — Vercel ne touche pas à Supabase. Il faut exécuter le SQL sur la BDD distante. Commande recommandée :
+
+```
+npx supabase db push
+```
+
+Si le projet est déjà lié (`supabase/config.toml` présent), cette commande pousse les migrations en attente. Si pas lié, lier d'abord avec `npx supabase link --project-ref <REF>` en utilisant le ref Supabase du projet (présent dans `.env.local` ou Supabase dashboard).
+
+**Vérification obligatoire avant de commit/push** : exécuter
+
+```sql
+SELECT name, capacity, display_order FROM gites ORDER BY display_order;
+```
+
+via `npx supabase db reset --linked` n'est PAS l'option (cela réinitialise toute la BDD). Préférer la query directement via Supabase Studio ou via la CLI SQL. Le résultat attendu :
+
+| name | capacity | display_order |
+|---|---|---|
+| Le Vallon | 15 | 1 |
+| La Salmonière | 22 | 2 |
+
+Si le résultat ne correspond pas, la migration n'a pas été appliquée — corriger avant de commit.
+
+### 4. Pas de modification de code
 
 La TabBar charge dynamiquement les gîtes depuis la BDD (étape 4) — elle affichera automatiquement les nouveaux noms et le nouvel ordre. Les réservations existantes pointent vers `gite_id` (UUID), donc elles suivent.
 

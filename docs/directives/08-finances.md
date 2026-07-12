@@ -32,10 +32,10 @@ Onglet Finances = **journal de saisie manuelle pure**, totalement indépendant d
 | Trimestre | Saisi par le contexte du clic (Johan clique sur T2 → l'opération est rattachée à T2). Stocké explicitement dans la table. |
 | Année | Définie par la navigation année en cours, stockée explicitement dans la table. |
 | Tri | Par `created_at` ASC (ordre d'enregistrement, plus ancienne en haut). |
-| Gîte | Dropdown à 3 valeurs : "Petit gîte", "Grand gîte", "Annexe". Stocké en `TEXT`. |
+| Gîte | Dropdown à 3 valeurs : "Le Vallon" (15p), "La Salmonière" (22p), "Annexe". Stocké en `TEXT` avec accent direct. |
 | Montant taxe (opération taxe) | Optionnel. Si renseigné, comptabilisé dans le total annuel/trimestriel. |
 | Pas d'édition inline | Toute édition passe par une modale dédiée (`RevenueEntryModal`, `TaxStayModal`, `MiscEntryModal`). |
-| Inversion display_order | Petit gîte → 1, Grand gîte → 2. |
+| Renommage + display_order | Géré dans la mini-tâche `08-pre-renommage-gites.md`, livrée avant cette étape. À l'arrivée ici, gîtes déjà renommés. |
 | `tax_entries` (ancienne) | DROP TABLE. |
 | `misc_entries` | Conservée. |
 | Bornes année | `[2020, currentYear + 1]`. |
@@ -47,18 +47,19 @@ Onglet Finances = **journal de saisie manuelle pure**, totalement indépendant d
 Une seule migration (`supabase/migrations/YYYYMMDDHHMMSS_finances_setup.sql`) :
 
 1. `DROP TABLE tax_entries;`
-2. `UPDATE gites SET display_order = 1 WHERE name = 'Petit gite';` puis `UPDATE gites SET display_order = 2 WHERE name = 'Grand gite';`
-3. `CREATE TABLE revenue_entries` (CA, schéma ci-dessous).
-4. `CREATE TABLE tax_stays` (Taxes de séjour, schéma ci-dessous).
-5. RLS "authenticated full access" sur les 2 nouvelles tables, comme les autres tables.
-6. Régénérer les types TS via `npm run generate:types`.
+2. `CREATE TABLE revenue_entries` (CA, schéma ci-dessous).
+3. `CREATE TABLE tax_stays` (Taxes de séjour, schéma ci-dessous).
+4. RLS "authenticated full access" sur les 2 nouvelles tables, comme les autres tables.
+5. Régénérer les types TS via `npm run generate:types`.
+
+Note : le renommage des gîtes (`'Petit gite'` → `'Le Vallon'`, `'Grand gite'` → `'La Salmonière'`) et le swap `display_order` sont gérés dans une **mini-tâche séparée** livrée avant cette étape (voir `08-pre-renommage-gites.md`). À l'arrivée de cette étape 8, les gîtes en BDD s'appellent déjà "Le Vallon" et "La Salmonière".
 
 ### Schéma `revenue_entries`
 
 | Colonne | Type | Contraintes |
 |---|---|---|
 | `id` | UUID | PK, DEFAULT gen_random_uuid() |
-| `gite_label` | TEXT | NOT NULL CHECK IN ('Petit gite', 'Grand gite', 'Annexe') |
+| `gite_label` | TEXT | NOT NULL CHECK IN ('Le Vallon', 'La Salmonière', 'Annexe') |
 | `amount` | NUMERIC(10,2) | NOT NULL CHECK >= 0 |
 | `entry_date` | TEXT | nullable (saisie libre par Johan) |
 | `year` | INTEGER | NOT NULL CHECK BETWEEN 2020 AND 2100 |
@@ -71,7 +72,7 @@ Une seule migration (`supabase/migrations/YYYYMMDDHHMMSS_finances_setup.sql`) :
 | Colonne | Type | Contraintes |
 |---|---|---|
 | `id` | UUID | PK, DEFAULT gen_random_uuid() |
-| `gite_label` | TEXT | NOT NULL CHECK IN ('Petit gite', 'Grand gite', 'Annexe') |
+| `gite_label` | TEXT | NOT NULL CHECK IN ('Le Vallon', 'La Salmonière', 'Annexe') |
 | `stay_dates` | TEXT | nullable (saisie libre, ex: "14 au 21 juillet") |
 | `nights_count` | INTEGER | NOT NULL CHECK > 0 |
 | `adult_count` | INTEGER | NOT NULL CHECK > 0 |
@@ -113,7 +114,7 @@ Route `/finances` (placeholder à remplacer). Référence visuelle générale : 
 - `src/components/finances/TaxStayForm.tsx` + `TaxStayModal.tsx`
 - `src/components/finances/MiscEntryForm.tsx` + `MiscEntryModal.tsx`
 
-Types domain à ajouter (`src/types/domain.ts`) : `RevenueEntry`, `TaxStay`, `MiscEntry`, `Quarter` (`1|2|3|4`), `GiteLabel` (`'Petit gite' | 'Grand gite' | 'Annexe'`).
+Types domain à ajouter (`src/types/domain.ts`) : `RevenueEntry`, `TaxStay`, `MiscEntry`, `Quarter` (`1|2|3|4`), `GiteLabel` (`'Le Vallon' | 'La Salmonière' | 'Annexe'`).
 
 ---
 
@@ -197,9 +198,19 @@ Push à la fin sans pause de validation intermédiaire (décision 36).
 3. Ajouter une opération CA (gîte + montant + date texte) → apparaît dans la liste T3, total CA T3 et annuel mis à jour.
 4. Ajouter une opération Taxe (gîte + dates texte + nuits + adultes + montant optionnel) → apparaît, total Taxes mis à jour. Tester avec et sans montant.
 5. Modifier et supprimer une entrée de chaque type via les modales. ConfirmDialog avant suppression.
-6. TabBar : Petit gîte (15p) en premier, Grand gîte (22p) en second.
+6. TabBar : "Le Vallon (15p)" en premier, "La Salmonière (22p)" en second (déjà validé via la mini-tâche `08-pre-renommage-gites.md`).
 
 ---
+
+## Isolation entre onglets (règle transversale)
+
+Cette étape **ne doit pas modifier** les composants ou données des autres onglets déjà livrés :
+- `CalendarPage`, `CalendarGrid`, `CalendarEvent`, `CalendarDay`, `CalendarLegend` (étape 5) — intacts.
+- `ReservationForm`, `ReservationModal`, `useReservations` (étape 6) — intacts.
+- `TabBar` (étape 4) — le swap display_order et le renommage se font via migration SQL UPDATE, pas via modification du code TabBar (qui charge dynamiquement depuis la BDD).
+- Composants contrats étape 7 — intacts.
+
+Si une modif d'un autre onglet semble nécessaire, c'est une directive séparée. Pas d'effet de bord ici.
 
 ## Note pour Claude Code
 

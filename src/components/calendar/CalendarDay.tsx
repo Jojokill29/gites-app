@@ -1,11 +1,19 @@
 import CalendarEvent from './CalendarEvent'
-import { STATUSES } from '../../constants/statuses'
+import type { StatusKey } from '../../constants/statuses'
 import type { DayInfo } from '../../utils/calendar'
 
 interface CalendarDayProps {
   day: DayInfo
   onClickDay: (dateStr: string) => void
   onClickReservation: (reservationId: string) => void
+}
+
+// Tinted status classes for rotation bars — colours resolve from CSS
+// variables so light and dark palettes are handled automatically.
+const ROTATION_TINT: Record<StatusKey, string> = {
+  pending_contract: 'bg-status-red-bg text-status-red-text border-status-red',
+  pending_deposit: 'bg-status-orange-bg text-status-orange-text border-status-orange',
+  deposit_paid: 'bg-status-green-bg text-status-green-text border-status-green',
 }
 
 export default function CalendarDay({
@@ -27,6 +35,9 @@ export default function CalendarDay({
 
   // Rotation days need more height
   const heightClass = hasRotation ? 'min-h-[90px] max-sm:min-h-[76px]' : ''
+
+  const rotationBar =
+    'block px-1.5 py-0.5 rounded-[4px] border-l-[3px] text-[10px] font-medium mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-sm:text-[9px] max-sm:px-1 max-sm:py-px'
 
   return (
     <div
@@ -67,12 +78,7 @@ export default function CalendarDay({
         <>
           <div
             data-reservation
-            className="block px-1.5 py-0.5 rounded-[4px] text-[10px] font-medium mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-sm:text-[9px] max-sm:px-1 max-sm:py-px"
-            style={{
-              backgroundColor:
-                STATUSES[day.rotation.departing.status].color,
-              color: '#000000',
-            }}
+            className={`${rotationBar} ${ROTATION_TINT[day.rotation.departing.status]}`}
             onClick={(e) => {
               e.stopPropagation()
               onClickReservation(day.rotation!.departing.id)
@@ -83,12 +89,7 @@ export default function CalendarDay({
           </div>
           <div
             data-reservation
-            className="block px-1.5 py-0.5 rounded-[4px] text-[10px] font-medium mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-sm:text-[9px] max-sm:px-1 max-sm:py-px"
-            style={{
-              backgroundColor:
-                STATUSES[day.rotation.arriving.status].color,
-              color: '#000000',
-            }}
+            className={`${rotationBar} ${ROTATION_TINT[day.rotation.arriving.status]}`}
             onClick={(e) => {
               e.stopPropagation()
               onClickReservation(day.rotation!.arriving.id)

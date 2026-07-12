@@ -15,7 +15,7 @@ export default function TopBar({ email, onLogout }: TopBarProps) {
   return (
     <header className="bg-surface border-b border-border sticky top-0 z-50 flex items-center justify-between px-5 py-3 max-sm:px-3.5 max-sm:py-2.5">
       <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-full bg-status-blue-bg flex items-center justify-center text-status-blue-text text-[11px] font-semibold shrink-0">
+        <div className="w-8 h-8 rounded-[7px] bg-surface-alt border border-border flex items-center justify-center text-text-secondary text-[11px] font-semibold shrink-0">
           {initials}
         </div>
         <div>

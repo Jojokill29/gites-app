@@ -60,7 +60,7 @@ export default function Modal({ open, onClose, children }: ModalProps) {
       }}
     >
       <div
-        className="bg-surface rounded-[14px] w-full max-w-[460px] max-h-[90vh] overflow-y-auto p-6 relative max-sm:p-[18px]"
+        className="bg-surface rounded-[10px] w-full max-w-[460px] max-h-[90vh] overflow-y-auto p-6 relative max-sm:p-[18px]"
         onClick={(e) => e.stopPropagation()}
       >
         {children}
