@@ -107,11 +107,24 @@ export const LABELS = {
 
   // Export
   exportTitle: 'Export des données',
-  exportDescription: 'Sauvegardez régulièrement vos données. Un export complet mensuel est recommandé.',
-  exportFull: 'Télécharger l\'archive complète (ZIP)',
   exportReservations: 'Exporter les réservations (CSV)',
-  exportFinances: 'Exporter les finances (CSV)',
-  exportGenerating: 'Génération de l\'archive en cours...',
+  exportReservationsDesc: 'Toutes les réservations, toutes années confondues.',
+  exportFinances: 'Exporter les finances (ZIP)',
+  exportFinancesDesc: 'CA, taxes de séjour et notes diverses — 3 CSV dans un ZIP.',
+  exportFull: 'Export complet (ZIP)',
+  exportFullDesc: 'Réservations, finances, contrats et factures en une seule archive.',
+  exportRecommendation: 'Effectuez un export complet au moins une fois par mois et conservez-le ailleurs (Drive, disque dur externe).',
+  exportLastFull: 'Dernier export complet :',
+  exportNeverDone: 'Aucun export complet réalisé pour l\'instant.',
+  exportLoading: 'Génération…',
+  exportProgressLabel: 'Préparation…',
+  exportProgressFiles: 'fichiers',
+  exportSuccessReservations: 'Réservations exportées avec succès.',
+  exportSuccessFinances: 'Finances exportées avec succès.',
+  exportSuccessFull: 'Export complet réalisé avec succès.',
+  exportErrorReservations: 'Échec de l\'export des réservations. Réessayez dans quelques instants.',
+  exportErrorFinances: 'Échec de l\'export des finances. Réessayez dans quelques instants.',
+  exportErrorFull: 'Échec de l\'export complet. Réessayez dans quelques instants.',
 
   // Generic states
   loading: 'Chargement...',
