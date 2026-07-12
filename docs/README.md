@@ -1,6 +1,6 @@
 # Gestion des gites -- Documentation projet
 
-Application web de gestion des reservations pour deux gites (22 et 15 personnes).
+Application web de gestion des reservations pour deux gites -- Le Vallon (15 personnes) et La Salmoniere (22 personnes) -- plus une annexe geree uniquement comme label dans les operations financieres (pas de calendrier, pas de reservations).
 
 Utilisateurs : Johan (Djo) et Quentin (Coltan), avec droits identiques.
 
@@ -30,10 +30,12 @@ Deux choix qui impactent toute l'application et qu'il faut connaitre des le depa
 - Seules les chaines affichees a l'utilisateur (labels, messages, erreurs) sont en francais
 - Raison : zero traduction entre la base et le code, types Supabase utilisables tels quels, code lisible par n'importe quel dev
 
-### Finances : hybride (calcul automatique + saisie manuelle)
-- **Chiffre d'affaires** : calcule automatiquement a partir de la somme des `paid_amount` des reservations dont au moins une nuit tombe dans le trimestre. Pas de double saisie.
-- **Taxes de sejour** : saisies manuellement par Johan apres versement effectif a la commune (les taxes dependent de regles locales que l'app ne peut pas connaitre)
-- **Notes financieres libres** : possibilite d'ajouter des entrees manuelles (corrections, frais exceptionnels)
+### Finances : journal de saisie 100% manuel, independant des reservations
+Modele revise le 2026-06-04 (decision 49, voir SESSION_MEMORY.md) : rien n'est calcule depuis les reservations, aucune valeur ne se reflete entre l'onglet Finances et la fiche reservation.
+- **Chiffre d'affaires** : saisi manuellement (table `revenue_entries`)
+- **Taxes de sejour** : saisies manuellement par sejour (table `tax_stays`)
+- **Notes financieres libres** : entrees manuelles (table `misc_entries`)
+- Chaque operation porte un `gite_label` TEXT contraint (`'Le Vallon'`, `'La Salmoniere'`, `'Annexe'`) et un couple annee/trimestre defini par le contexte de clic dans l'accordion (date affichee = texte libre)
 
 ---
 
@@ -47,8 +49,8 @@ Deux choix qui impactent toute l'application et qu'il faut connaitre des le depa
 ### Fonctionnalites principales
 - Authentification par login/mot de passe (signup desactive)
 - 2 calendriers (un par gite) avec reservations colorees par statut
-- Gestion des reservations avec upload de contrats PDF
-- Onglet finances : CA calcule + taxes de sejour saisies par trimestre
+- Gestion des reservations avec upload de contrats (PDF, JPG, PNG -- compression des images cote client)
+- Onglet finances : journal manuel par trimestre (CA, taxes de sejour, notes diverses)
 - Onglet factures : upload + export ZIP trimestriel pour le comptable
 - Export complet des donnees (sauvegarde long terme)
 

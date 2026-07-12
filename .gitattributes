@@ -1,0 +1,11 @@
+# Normalisation des fins de ligne : evite le bruit CRLF/LF dans git status
+# quand les fichiers sont edites alternativement sous Windows et par les outils Claude.
+* text=auto
+
+# Fichiers binaires : ne jamais tenter de normaliser
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.woff binary
+*.woff2 binary
