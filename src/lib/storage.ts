@@ -65,3 +65,17 @@ export async function deleteContract(path: string): Promise<void> {
     console.error('Storage delete error (non-blocking):', error)
   }
 }
+
+/**
+ * Download a file from the given bucket and return it as a Blob.
+ * Throws explicitly if the file is missing or inaccessible.
+ * Used by the export ZIP builder; all callers must handle the error.
+ */
+export async function downloadFile(bucket: string, path: string): Promise<Blob> {
+  const { data, error } = await supabase.storage.from(bucket).download(path)
+  if (error || !data) {
+    console.error(`Storage download error (${bucket}/${path}):`, error)
+    throw new Error(`Could not download file: ${bucket}/${path}`)
+  }
+  return data
+}
