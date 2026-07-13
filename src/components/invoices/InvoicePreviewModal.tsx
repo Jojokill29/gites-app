@@ -73,7 +73,7 @@ export default function InvoicePreviewModal({ invoice, onClose, onDeleted }: Pro
     <>
       <div
         ref={overlayRef}
-        className="fixed inset-0 bg-black/50 z-[300] flex items-center justify-center p-4 max-sm:p-0"
+        className="fixed inset-0 bg-black/50 z-[190] flex items-center justify-center p-4 max-sm:p-0"
         onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
         role="dialog"
         aria-modal="true"
