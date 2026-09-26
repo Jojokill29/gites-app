@@ -85,6 +85,15 @@ export default function CalendarPage({ gites }: CalendarPageProps) {
     const openDetail = (reservationId: string) =>
       navigate(`/reservations/${reservationId}`)
 
+    // Tapping a day starts a stay on that night, on the gite of the active tab
+    const openCreate = (dateStr: string) => {
+      if (!giteId) return
+      const nextDay = format(addDays(parseISO(dateStr), 1), 'yyyy-MM-dd')
+      navigate(
+        `/reservations/new?gite=${encodeURIComponent(giteId)}&start=${dateStr}&end=${nextDay}`,
+      )
+    }
+
     const todayStr = format(new Date(), 'yyyy-MM-dd')
     const upcoming = reservations
       .filter((r) => r.start_date >= todayStr)
@@ -159,6 +168,7 @@ export default function CalendarPage({ gites }: CalendarPageProps) {
           reservations={reservations}
           loading={loading}
           onClickReservation={openDetail}
+          onClickDay={openCreate}
           onSwipeNextMonth={handleNextMonth}
           onSwipePreviousMonth={handlePrevMonth}
         />

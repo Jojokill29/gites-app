@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react'
-import { getMonth, isSameDay } from 'date-fns'
+import { format, getMonth, isSameDay } from 'date-fns'
 import { buildMonthGrid } from '../../utils/calendar'
 import { buildWeekBars, laneCount } from '../../utils/weekBars'
 import { STATUSES } from '../../constants/statuses'
@@ -16,6 +16,8 @@ interface MobileCalendarProps {
   reservations: Reservation[]
   loading: boolean
   onClickReservation: (reservationId: string) => void
+  /** Tapping a day of the displayed month starts a reservation on that day. */
+  onClickDay: (dateStr: string) => void
   onSwipeNextMonth: () => void
   onSwipePreviousMonth: () => void
 }
@@ -31,6 +33,7 @@ export default function MobileCalendar({
   reservations,
   loading,
   onClickReservation,
+  onClickDay,
   onSwipeNextMonth,
   onSwipePreviousMonth,
 }: MobileCalendarProps) {
@@ -124,11 +127,21 @@ export default function MobileCalendar({
               return (
                 <div
                   key={date.toISOString()}
-                  className={`px-2 pt-1.5 text-[13px] ${cellBg}`}
+                  className={`px-2 pt-1.5 text-[13px] ${cellBg} ${
+                    isCurrentMonth ? 'cursor-pointer' : ''
+                  }`}
                   style={{
                     gridColumn: `${2 * dayIndex + 1} / ${2 * dayIndex + 3}`,
                     gridRow: '1 / -1',
                   }}
+                  // Days outside the displayed month are inert, as on desktop.
+                  // The bars are siblings painted above, so tapping one never
+                  // reaches this cell.
+                  onClick={
+                    isCurrentMonth
+                      ? () => onClickDay(format(date, 'yyyy-MM-dd'))
+                      : undefined
+                  }
                 >
                   <span
                     className={`inline-flex items-center justify-center min-w-[22px] h-5 rounded-sm tabular-nums ${
