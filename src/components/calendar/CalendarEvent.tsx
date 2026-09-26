@@ -11,20 +11,20 @@ interface CalendarEventProps {
   onClick: () => void
 }
 
+// Inner edges of a multi-day bar lose their border and radius so the
+// segments read as one continuous bar across the week.
 const segmentStyles: Record<SegmentType, string> = {
-  start: 'rounded-l-[4px] rounded-r-none mr-[-6px]',
-  middle: 'rounded-none ml-[-6px] mr-[-6px]',
-  end: 'rounded-l-none rounded-r-[4px] ml-[-6px]',
-  single: 'rounded-[4px]',
+  start: 'rounded-l-md rounded-r-none border-r-0 mr-[-6px]',
+  middle: 'rounded-none border-x-0 ml-[-6px] mr-[-6px]',
+  end: 'rounded-l-none rounded-r-md border-l-0 ml-[-6px]',
+  single: 'rounded-md',
 }
 
-// Tinted status treatment — colours resolve from CSS variables, so both the
-// light and dark palettes are handled automatically. The leading edge of a
-// reservation gets a 3px accent in the full status colour.
-const STATUS_TINT: Record<StatusKey, { fill: string; edge: string }> = {
-  pending_contract: { fill: 'bg-status-red-bg text-status-red-text', edge: 'border-status-red' },
-  pending_deposit: { fill: 'bg-status-orange-bg text-status-orange-text', edge: 'border-status-orange' },
-  deposit_paid: { fill: 'bg-status-green-bg text-status-green-text', edge: 'border-status-green' },
+// A booking bar is a status-tinted fill with a matching border and a 6px dot
+const STATUS_TINT: Record<StatusKey, { fill: string; dot: string }> = {
+  pending_contract: { fill: 'bg-status-red-bg border-status-red-border', dot: 'bg-status-red' },
+  pending_deposit: { fill: 'bg-status-orange-bg border-status-orange-border', dot: 'bg-status-orange' },
+  deposit_paid: { fill: 'bg-status-green-bg border-status-green-border', dot: 'bg-status-green' },
 }
 
 /** Check if a reservation is missing its contract file */
@@ -64,10 +64,6 @@ export default function CalendarEvent({
   const tint = STATUS_TINT[reservation.status]
   const linenSuffix = buildLinenSuffix(reservation)
 
-  // Leading edge accent shown on the first visible segment of the reservation
-  const isEdge = type === 'start' || type === 'single'
-  const edgeClass = isEdge ? `border-l-[3px] ${tint.edge}` : ''
-
   // Show indicator on the first visible segment only (same logic as showName,
   // which covers start, single, and middle when it's the first visible in month)
   const showMissingIcon = showName && isContractMissing(reservation)
@@ -87,7 +83,7 @@ export default function CalendarEvent({
 
   return (
     <div
-      className={`flex items-center px-1.5 py-0.5 text-[10px] font-medium mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden max-sm:text-[9px] max-sm:px-1 max-sm:py-px ${tint.fill} ${edgeClass} ${segmentStyles[type]}`}
+      className={`flex items-center gap-1.5 px-1.5 py-[3px] border text-[13px] font-medium text-text mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden max-sm:text-[10px] max-sm:gap-1 max-sm:px-1 max-sm:py-px ${tint.fill} ${segmentStyles[type]}`}
       data-reservation
       onClick={(e) => {
         e.stopPropagation()
@@ -96,17 +92,20 @@ export default function CalendarEvent({
       title={buildTooltip(reservation)}
     >
       {showName ? (
-        <span className="overflow-hidden text-ellipsis">
-          {showMissingIcon && (
-            <span className="mr-0.5" aria-hidden="true">⚠</span>
-          )}
-          {reservation.client_name}
-          {showSuffix && (
-            <span className="text-[9px] md:text-[10px] opacity-70 ml-1">
-              · {linenSuffix}
-            </span>
-          )}
-        </span>
+        <>
+          <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${tint.dot}`} />
+          <span className="overflow-hidden text-ellipsis">
+            {showMissingIcon && (
+              <span className="text-alert mr-0.5" aria-hidden="true">⚠</span>
+            )}
+            {reservation.client_name}
+            {showSuffix && (
+              <span className="font-mono text-[11px] text-text-secondary ml-1.5 max-sm:text-[9px]">
+                {linenSuffix}
+              </span>
+            )}
+          </span>
+        </>
       ) : (
         '\u00A0'
       )}

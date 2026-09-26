@@ -8,12 +8,11 @@ interface CalendarDayProps {
   onClickReservation: (reservationId: string) => void
 }
 
-// Tinted status classes for rotation bars — colours resolve from CSS
-// variables so light and dark palettes are handled automatically.
-const ROTATION_TINT: Record<StatusKey, string> = {
-  pending_contract: 'bg-status-red-bg text-status-red-text border-status-red',
-  pending_deposit: 'bg-status-orange-bg text-status-orange-text border-status-orange',
-  deposit_paid: 'bg-status-green-bg text-status-green-text border-status-green',
+// Rotation bars use the same status fill as a normal booking bar
+const ROTATION_TINT: Record<StatusKey, { bar: string; dot: string }> = {
+  pending_contract: { bar: 'bg-status-red-bg border-status-red-border', dot: 'bg-status-red' },
+  pending_deposit: { bar: 'bg-status-orange-bg border-status-orange-border', dot: 'bg-status-orange' },
+  deposit_paid: { bar: 'bg-status-green-bg border-status-green-border', dot: 'bg-status-green' },
 }
 
 export default function CalendarDay({
@@ -23,21 +22,24 @@ export default function CalendarDay({
 }: CalendarDayProps) {
   const hasRotation = day.rotation !== null
   const isEmpty = !day.isCurrentMonth
+  // Saturday and Sunday get a slightly lighter cell
+  const weekday = day.date.getDay()
+  const isWeekend = weekday === 0 || weekday === 6
 
   const baseClasses =
-    'min-h-[72px] p-1.5 border-r border-b border-border relative cursor-pointer transition-colors max-sm:min-h-[56px] max-sm:p-1'
+    'min-h-[76px] p-1.5 border-r border-b border-border-grid relative cursor-pointer transition-colors max-sm:min-h-[56px] max-sm:p-1'
 
   const stateClasses = isEmpty
-    ? 'bg-surface-alt opacity-40 cursor-default'
-    : day.isToday
-      ? 'bg-status-blue-bg hover:bg-status-blue-bg/80'
+    ? 'bg-outside cursor-default'
+    : isWeekend
+      ? 'bg-weekend hover:bg-surface-alt'
       : 'hover:bg-surface-alt'
 
   // Rotation days need more height
-  const heightClass = hasRotation ? 'min-h-[90px] max-sm:min-h-[76px]' : ''
+  const heightClass = hasRotation ? 'min-h-[94px] max-sm:min-h-[76px]' : ''
 
   const rotationBar =
-    'block px-1.5 py-0.5 rounded-[4px] border-l-[3px] text-[10px] font-medium mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis max-sm:text-[9px] max-sm:px-1 max-sm:py-px'
+    'flex items-center gap-1.5 px-1.5 py-0.5 rounded-md border text-[11px] font-medium text-text mb-0.5 cursor-pointer whitespace-nowrap overflow-hidden max-sm:text-[9px] max-sm:px-1 max-sm:py-px'
 
   return (
     <div
@@ -52,14 +54,19 @@ export default function CalendarDay({
         }
       }}
     >
-      <div
-        className={`text-[12px] font-medium mb-1 max-sm:text-[11px] ${
-          day.isToday
-            ? 'text-status-blue-text font-semibold'
-            : 'text-text-secondary'
-        }`}
-      >
-        {day.date.getDate()}
+      {/* Today is a light pill around the number, not a tinted cell */}
+      <div className="mb-1">
+        <span
+          className={`inline-grid place-items-center min-w-[22px] h-[22px] rounded-sm text-[12px] tabular-nums max-sm:text-[11px] max-sm:min-w-[19px] max-sm:h-[19px] ${
+            day.isToday
+              ? 'bg-action text-action-text font-semibold'
+              : isEmpty
+                ? 'text-text-disabled'
+                : 'text-text'
+          }`}
+        >
+          {day.date.getDate()}
+        </span>
       </div>
 
       {/* Normal reservation bar segments */}
@@ -78,27 +85,29 @@ export default function CalendarDay({
         <>
           <div
             data-reservation
-            className={`${rotationBar} ${ROTATION_TINT[day.rotation.departing.status]}`}
+            className={`${rotationBar} ${ROTATION_TINT[day.rotation.departing.status].bar}`}
             onClick={(e) => {
               e.stopPropagation()
               onClickReservation(day.rotation!.departing.id)
             }}
             title={day.rotation.departing.client_name}
           >
-            Dép. {day.rotation.departing.client_name}
+            <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${ROTATION_TINT[day.rotation.departing.status].dot}`} />
+            <span className="overflow-hidden text-ellipsis">Dép. {day.rotation.departing.client_name}</span>
           </div>
           <div
             data-reservation
-            className={`${rotationBar} ${ROTATION_TINT[day.rotation.arriving.status]}`}
+            className={`${rotationBar} ${ROTATION_TINT[day.rotation.arriving.status].bar}`}
             onClick={(e) => {
               e.stopPropagation()
               onClickReservation(day.rotation!.arriving.id)
             }}
             title={day.rotation.arriving.client_name}
           >
-            Arr. {day.rotation.arriving.client_name}
+            <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${ROTATION_TINT[day.rotation.arriving.status].dot}`} />
+            <span className="overflow-hidden text-ellipsis">Arr. {day.rotation.arriving.client_name}</span>
           </div>
-          <div className="text-[9px] text-text-tertiary text-center mt-px tracking-wide">
+          <div className="font-mono text-[11px] text-text-muted text-center mt-px max-sm:text-[9px]">
             rotation
           </div>
         </>

@@ -74,24 +74,29 @@ export default function CalendarPage({ gites }: CalendarPageProps) {
   }
 
   return (
-    <div className="max-w-[960px] mx-auto px-4 py-5 max-sm:px-3 max-sm:pb-20">
-      {/* Header: month navigation + legend */}
-      <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
-        <div className="flex items-center gap-2.5">
-          <Button onClick={handlePrevMonth} className="px-2.5 py-1" title={LABELS.previousMonth}>
-            ‹
-          </Button>
-          <span className="font-heading font-semibold text-[20px] min-w-[160px] text-center max-sm:text-[17px] max-sm:min-w-[130px]">
+    <div className="max-w-[1440px] mx-auto px-6 py-5 max-sm:px-3 max-sm:pb-20">
+      {/* Header: month title, grouped month navigation, new reservation */}
+      <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
+        <div className="flex items-center gap-3.5 flex-wrap">
+          <h1 className="font-heading font-semibold text-[20px] m-0 max-sm:text-[17px]">
             {capitalizedMonth}
-          </span>
-          <Button onClick={handleNextMonth} className="px-2.5 py-1" title={LABELS.nextMonth}>
-            ›
-          </Button>
-          <Button onClick={handleToday} className="px-2.5 py-1 text-[12px] ml-1">
-            {LABELS.today}
-          </Button>
+          </h1>
+          {/* Segmented 32px control, as in the mockup */}
+          <div className="flex border border-border-hover rounded-md overflow-hidden">
+            <Button onClick={handlePrevMonth} className="!h-8 !px-3 !rounded-none !border-0" title={LABELS.previousMonth}>
+              ‹
+            </Button>
+            <Button onClick={handleToday} className="!h-8 !px-3 !rounded-none !border-0 !border-x !border-border-hover !text-[13px]">
+              {LABELS.today}
+            </Button>
+            <Button onClick={handleNextMonth} className="!h-8 !px-3 !rounded-none !border-0" title={LABELS.nextMonth}>
+              ›
+            </Button>
+          </div>
         </div>
-        <CalendarLegend />
+        <Button variant="primary" onClick={handleNewReservation}>
+          {LABELS.newReservation}
+        </Button>
       </div>
 
       {/* Calendar grid */}
@@ -104,10 +109,10 @@ export default function CalendarPage({ gites }: CalendarPageProps) {
         onClickReservation={handleClickReservation}
       />
 
-      {/* New reservation button */}
-      <Button className="w-full mt-4" onClick={handleNewReservation}>
-        {LABELS.newReservation}
-      </Button>
+      {/* Legend */}
+      <div className="mt-4">
+        <CalendarLegend />
+      </div>
 
       {/* Reservation modal */}
       {modal && giteId && (

@@ -39,16 +39,16 @@ export default function CalendarGrid({
 
   return (
     <div
-      className={`bg-surface border border-border rounded-[10px] overflow-hidden transition-opacity ${
+      className={`bg-calendar border border-border rounded-lg overflow-hidden transition-opacity ${
         loading ? 'opacity-60' : ''
       }`}
     >
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 border-b border-border bg-surface-alt">
+      <div className="grid grid-cols-7 border-b border-border">
         {WEEKDAY_LABELS.map((label) => (
           <div
             key={label}
-            className="py-2.5 px-1 text-[11px] font-medium text-text-secondary text-center uppercase tracking-wider max-sm:text-[10px] max-sm:py-2"
+            className="py-2 px-2.5 text-[12px] text-text-tertiary max-sm:text-[11px] max-sm:px-1.5 max-sm:text-center"
           >
             {label}
           </div>
