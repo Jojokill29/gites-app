@@ -18,8 +18,6 @@ export function useIsMobile(): boolean {
     const mql = window.matchMedia(MOBILE_QUERY)
     const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches)
     mql.addEventListener('change', onChange)
-    // Width may have changed between the initial state and this effect
-    setIsMobile(mql.matches)
     return () => mql.removeEventListener('change', onChange)
   }, [])
 

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { useGites } from './hooks/useGites'
+import { useIsMobile } from './hooks/useIsMobile'
 import LoginPage from './pages/LoginPage'
 import CalendarPage from './pages/CalendarPage'
 import FinancesPage from './pages/FinancesPage'
@@ -9,12 +10,27 @@ import ExportPage from './pages/ExportPage'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import TopBar from './components/layout/TopBar'
 import TabBar from './components/layout/TabBar'
+import MobileLayout from './components/layout/MobileLayout'
 
 function AppLayout() {
   const { user, signOut } = useAuth()
   const { gites, loading: gitesLoading, error: gitesError } = useGites()
+  const isMobile = useIsMobile()
 
   const firstGiteId = gites.length > 0 ? gites[0].id : null
+
+  // Mobile has its own navigation, its own screens and its own calendar;
+  // the desktop tree below is left exactly as it was.
+  if (isMobile) {
+    return (
+      <MobileLayout
+        gites={gites}
+        gitesError={gitesError}
+        email={user?.email ?? ''}
+        onLogout={signOut}
+      />
+    )
+  }
 
   return (
     <div className="min-h-screen bg-bg">
