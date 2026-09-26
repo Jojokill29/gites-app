@@ -89,7 +89,7 @@ export default function ContractField({
   if (currentPath && pendingPath) {
     return (
       <div>
-        <span className="block text-[12px] font-medium text-text-secondary mb-1">
+        <span className="block text-[13px] text-text-secondary mb-1.5">
           {L.fieldTitle}
         </span>
         <p className="text-[13px] text-text-secondary mb-2">
@@ -106,7 +106,7 @@ export default function ContractField({
   if (currentPath) {
     return (
       <div>
-        <span className="block text-[12px] font-medium text-text-secondary mb-1">
+        <span className="block text-[13px] text-text-secondary mb-1.5">
           {L.fieldTitle}
         </span>
         <p className="text-[13px] text-text mb-2">{L.attached}</p>
@@ -143,7 +143,7 @@ export default function ContractField({
   if (pendingPath) {
     return (
       <div>
-        <span className="block text-[12px] font-medium text-text-secondary mb-1">
+        <span className="block text-[13px] text-text-secondary mb-1.5">
           {L.fieldTitle}
         </span>
         <p className="text-[13px] text-text mb-2">{L.attached}</p>
@@ -179,13 +179,13 @@ export default function ContractField({
   // State: no contract at all
   return (
     <div>
-      <span className="block text-[12px] font-medium text-text-secondary mb-1">
+      <span className="block text-[13px] text-text-secondary mb-1.5">
         {L.fieldTitle}
       </span>
       <Button type="button" onClick={openFilePicker} disabled={uploading}>
         {uploading ? L.uploading : L.upload}
       </Button>
-      <p className="mt-1 text-[12px] text-text-secondary">{L.helperText}</p>
+      <p className="mt-1.5 text-[12px] text-text-muted">{L.helperText}</p>
       {fileInput}
       {error && (
         <p className="mt-2 text-[12px] text-status-red-text">{error}</p>

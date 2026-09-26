@@ -87,10 +87,16 @@ const currencyFmt = new Intl.NumberFormat('fr-FR', {
   currency: 'EUR',
 })
 
-const inputClass =
-  'w-full px-3 py-2 text-[14px] border border-border rounded-[10px] bg-surface focus:outline-none focus:ring-2 focus:ring-status-blue focus:border-transparent'
-const labelClass = 'block text-[12px] font-medium text-text-secondary mb-1'
+// Fields: dark background, 36px high, 4px radius, light border on focus
+const fieldBase =
+  'w-full px-2.5 text-[14px] text-text bg-bg border border-border-input rounded-md placeholder:text-text-muted focus:outline-none focus:border-focus'
+const inputClass = `${fieldBase} h-9`
+const amountInputClass = `${inputClass} tabular-nums`
+const textareaClass = `${fieldBase} py-2 resize-y`
+const labelClass = 'block text-[13px] text-text-secondary mb-1.5'
 const errorMsgClass = 'mt-1 text-[12px] text-status-red-text'
+// Rule between the sections of the form
+const sectionClass = 'border-t border-border pt-4 mt-4'
 
 // --- Component ---
 
@@ -159,13 +165,13 @@ export default function ReservationForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
       {/* Title */}
-      <h2 className="font-semibold text-[18px] text-text mb-4 pr-8">
+      <h2 className="font-semibold text-[17px] text-text mb-4 pr-8">
         {isEdit ? LABELS.editReservationTitle : LABELS.newReservationTitle}
       </h2>
 
-      {/* Server error banner */}
+      {/* Server error banner (overlap 23P01, capacity…) */}
       {serverError && (
-        <div className="mb-4 p-3 rounded-[10px] bg-status-red-bg text-status-red-text text-[13px]">
+        <div className="mb-4 px-2.5 py-2 rounded-md bg-alert-bg text-alert text-[13px]">
           {serverError}
         </div>
       )}
@@ -176,7 +182,7 @@ export default function ReservationForm({
       {/* Gite (read-only) */}
       <div className="mb-3">
         <span className={labelClass}>{LABELS.gite}</span>
-        <div className="px-3 py-2 text-[14px] bg-surface-alt rounded-[10px] text-text-secondary">
+        <div className="h-9 flex items-center px-2.5 text-[14px] bg-surface border border-border rounded-md text-text-secondary">
           {giteName}
         </div>
       </div>
@@ -245,41 +251,43 @@ export default function ReservationForm({
       </div>
 
       {/* Amounts */}
-      <div className="grid grid-cols-2 gap-3 mb-3">
-        <div>
-          <label className={labelClass}>{LABELS.totalAmount}</label>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            {...register('total_amount', { valueAsNumber: true })}
-            className={inputClass}
-          />
-          {errors.total_amount && <p className={errorMsgClass}>{errors.total_amount.message}</p>}
+      <div className={sectionClass}>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={labelClass}>{LABELS.totalAmount}</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              {...register('total_amount', { valueAsNumber: true })}
+              className={amountInputClass}
+            />
+            {errors.total_amount && <p className={errorMsgClass}>{errors.total_amount.message}</p>}
+          </div>
+          <div>
+            <label className={labelClass}>{LABELS.paidAmount}</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              {...register('paid_amount', { valueAsNumber: true })}
+              className={amountInputClass}
+            />
+            {errors.paid_amount && <p className={errorMsgClass}>{errors.paid_amount.message}</p>}
+          </div>
         </div>
-        <div>
-          <label className={labelClass}>{LABELS.paidAmount}</label>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            {...register('paid_amount', { valueAsNumber: true })}
-            className={inputClass}
-          />
-          {errors.paid_amount && <p className={errorMsgClass}>{errors.paid_amount.message}</p>}
-        </div>
-      </div>
 
-      {/* Remaining amount */}
-      <div className="flex justify-between items-center py-2 px-3 mb-3 rounded-[10px] bg-surface-alt">
-        <span className="text-[13px] text-text-secondary">{LABELS.remainingAmount}</span>
-        <span
-          className={`text-[14px] font-medium ${
-            remaining > 0 ? 'text-status-red' : 'text-text'
-          }`}
-        >
-          {currencyFmt.format(remaining)}
-        </span>
+        {/* Remaining amount: a row on a rule, not a card */}
+        <div className="flex justify-between items-center py-2.5 mt-3 mb-3 border-t border-border">
+          <span className="text-[15px] font-semibold text-text">{LABELS.remainingAmount}</span>
+          <span
+            className={`text-[15px] font-semibold tabular-nums ${
+              remaining > 0 ? 'text-status-red-text' : 'text-text'
+            }`}
+          >
+            {currencyFmt.format(remaining)}
+          </span>
+        </div>
       </div>
 
       {/* Status */}
@@ -297,22 +305,22 @@ export default function ReservationForm({
       </div>
 
       {/* Notes */}
-      <div className="mb-4">
+      <div className={sectionClass}>
         <label className={labelClass}>{LABELS.notes}</label>
         <textarea
           rows={3}
           {...register('notes', {
             setValueAs: (v: string) => (v === '' ? null : v),
           })}
-          className={`${inputClass} resize-y`}
+          className={textareaClass}
         />
       </div>
 
       {/* Contract */}
-      <div className="mb-4">
+      <div className="mt-3 mb-4">
         {pendingRemoval ? (
           <div>
-            <span className="block text-[12px] font-medium text-text-secondary mb-1">
+            <span className={labelClass}>
               {LABELS.contracts.fieldTitle}
             </span>
             <p className="text-[13px] text-text-secondary mb-2">
@@ -332,18 +340,19 @@ export default function ReservationForm({
         )}
       </div>
 
-      {/* Actions */}
-      <div className="flex gap-2 max-sm:flex-col">
-        <Button type="submit" disabled={busy} className="flex-1">
-          {saving ? 'Enregistrement...' : LABELS.save}
-        </Button>
+      {/* Actions: destructive on the left, save on the right */}
+      <div className="flex items-center gap-2 border-t border-border pt-4 max-sm:flex-col-reverse max-sm:items-stretch">
         {isEdit && onDelete && (
-          <Button type="button" variant="danger" onClick={onDelete} disabled={busy} className="flex-1">
+          <Button type="button" variant="danger" onClick={onDelete} disabled={busy}>
             {deleting ? 'Suppression...' : LABELS.delete}
           </Button>
         )}
-        <Button type="button" onClick={onCancel} disabled={busy} className="flex-1">
+        <div className="flex-1 max-sm:hidden" />
+        <Button type="button" onClick={onCancel} disabled={busy}>
           {LABELS.cancel}
+        </Button>
+        <Button type="submit" variant="primary" disabled={busy}>
+          {saving ? 'Enregistrement...' : LABELS.save}
         </Button>
       </div>
     </form>

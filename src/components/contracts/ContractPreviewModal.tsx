@@ -77,7 +77,7 @@ export default function ContractPreviewModal({
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 bg-black/50 z-[300] flex items-center justify-center p-4 max-sm:p-0"
+      className="fixed inset-0 bg-overlay z-[300] flex items-center justify-center p-4 max-sm:p-0"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose()
       }}
@@ -86,7 +86,7 @@ export default function ContractPreviewModal({
       aria-modal="true"
     >
       <div
-        className="bg-surface rounded-[14px] max-sm:rounded-none w-[90vw] h-[90vh] max-sm:w-[100vw] max-sm:h-[100vh] flex flex-col p-4 max-sm:p-3"
+        className="bg-surface border border-border-hover shadow-modal rounded-xl max-sm:rounded-none max-sm:border-0 w-[90vw] h-[90vh] max-sm:w-[100vw] max-sm:h-[100vh] flex flex-col p-4 max-sm:p-3"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -118,7 +118,7 @@ export default function ContractPreviewModal({
             <iframe
               src={signedUrl}
               title="Aperçu du contrat"
-              className="w-full h-full border-0 rounded-[8px]"
+              className="w-full h-full border-0 rounded-md"
             />
           )}
 
