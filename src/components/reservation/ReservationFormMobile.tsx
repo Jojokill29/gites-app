@@ -103,7 +103,7 @@ export default function ReservationFormMobile({
       className="h-[100dvh] flex flex-col bg-surface"
     >
       {/* Header */}
-      <div className="flex-none h-[52px] grid grid-cols-[72px_1fr_72px] items-center px-4 border-b border-border">
+      <div className="flex-none h-[52px] grid grid-cols-[72px_minmax(0,1fr)_72px] items-center px-4 border-b border-border">
         <button
           type="button"
           onClick={onCancel}
@@ -131,7 +131,9 @@ export default function ReservationFormMobile({
           <span className={labelClass}>{LABELS.gite}</span>
           <div
             className="grid border border-border-hover rounded-md overflow-hidden"
-            style={{ gridTemplateColumns: `repeat(${gites.length || 1}, 1fr)` }}
+            style={{
+              gridTemplateColumns: `repeat(${gites.length || 1}, minmax(0, 1fr))`,
+            }}
           >
             {gites.map((g) => {
               const active = values.gite_id === g.id
@@ -140,15 +142,15 @@ export default function ReservationFormMobile({
                   key={g.id}
                   type="button"
                   onClick={() => setValue('gite_id', g.id, { shouldValidate: true })}
-                  className={`h-11 flex items-center justify-center gap-1.5 text-[14px] ${
+                  className={`h-11 min-w-0 px-1 flex items-center justify-center gap-1.5 text-[14px] ${
                     active
                       ? 'bg-action text-action-text font-medium'
                       : 'text-text-secondary'
                   }`}
                 >
-                  {g.name}
+                  <span className="truncate">{g.name}</span>
                   <span
-                    className={`font-mono text-[11px] ${
+                    className={`font-mono text-[11px] shrink-0 ${
                       active ? '' : 'text-text-muted'
                     }`}
                   >

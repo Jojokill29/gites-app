@@ -43,16 +43,18 @@ export default function MobileCalendar({
         ))}
       </div>
 
-      {weeks.map((week) => {
+      {weeks.map((week, weekIndex) => {
         const bars = buildWeekBars(week[0], reservations)
         const lanes = laneCount(bars)
 
         return (
           <div
             key={week[0].toISOString()}
-            className="grid border-t border-border-grid first:border-t-0"
+            // The first week sits right under the header rule, no second line
+            className={`grid ${weekIndex > 0 ? 'border-t border-border-grid' : ''}`}
             style={{
-              gridTemplateColumns: 'repeat(14, 1fr)',
+              // minmax(0, …) or a long client name would widen the grid
+              gridTemplateColumns: 'repeat(14, minmax(0, 1fr))',
               gridTemplateRows: `28px ${'24px '.repeat(lanes)}8px`,
             }}
           >

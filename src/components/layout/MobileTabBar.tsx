@@ -8,8 +8,9 @@ interface MobileTabBarProps {
   moreOpen: boolean
 }
 
+// truncate + minmax(0,…) on the grid: 5 slots must never widen the viewport
 const slotClass =
-  'h-[52px] flex items-center justify-center text-[13px] border-t-2 cursor-pointer'
+  'h-[52px] min-w-0 px-0.5 flex items-center justify-center text-[13px] border-t-2 cursor-pointer truncate'
 const activeClass = 'text-text font-medium border-action'
 const idleClass = 'text-text-tertiary border-transparent'
 
@@ -35,7 +36,7 @@ export default function MobileTabBar({
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-[100] bg-header border-t border-border grid grid-cols-[1fr_1fr_64px_1fr_1fr] items-start px-2"
+      className="fixed bottom-0 left-0 right-0 z-[100] bg-header border-t border-border grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_60px_minmax(0,1fr)_minmax(0,1fr)] items-start px-1"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <button
