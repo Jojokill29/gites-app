@@ -7,6 +7,7 @@ import ConfirmDialog from '../ui/ConfirmDialog'
 import Button from '../ui/Button'
 import { LABELS } from '../../constants/labels'
 import { supabase } from '../../lib/supabase'
+import { deleteFinanceEntry } from '../../lib/finances'
 import type { RevenueEntry, Quarter, GiteLabel } from '../../types/domain'
 import DateMaskedInput from './DateMaskedInput'
 
@@ -63,10 +64,11 @@ export default function RevenueEntryModal({ mode, entry, year, quarter, onClose,
   const handleDelete = async () => {
     if (!entry) return
     setDeleting(true)
-    const { error: err } = await supabase.from('revenue_entries').delete().eq('id', entry.id)
+    const ok = await deleteFinanceEntry('revenue_entries', entry.id)
     setDeleting(false)
-    if (err) { console.error('Revenue entry delete error:', err); setError(LABELS.errorSaveData); setShowConfirm(false); return }
-    setShowConfirm(false); onSuccess(); onClose()
+    setShowConfirm(false)
+    if (!ok) { setError(LABELS.errorSaveData); return }
+    onSuccess(); onClose()
   }
 
   const busy = saving || deleting

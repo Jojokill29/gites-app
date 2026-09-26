@@ -9,6 +9,8 @@ import RevenueEntryModal from '../components/finances/RevenueEntryModal'
 import TaxStayModal from '../components/finances/TaxStayModal'
 import MiscEntryModal from '../components/finances/MiscEntryModal'
 import Button from '../components/ui/Button'
+import ConfirmDialog from '../components/ui/ConfirmDialog'
+import { deleteFinanceEntry, type FinanceTableName } from '../lib/finances'
 import type { RevenueEntry, TaxStay, MiscEntry, Quarter } from '../types/domain'
 
 const MIN_YEAR = 2020
@@ -40,6 +42,10 @@ export default function FinancesPage() {
 
   const finances = useFinances(year)
   const [modal, setModal] = useState<ModalState>(null)
+  // Row deletion from the table: one shared confirmation for the 3 sections.
+  const [entryToDelete, setEntryToDelete] = useState<{ table: FinanceTableName; id: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const setYear = (y: number) => {
     setSearchParams({ year: String(y) })
@@ -54,6 +60,21 @@ export default function FinancesPage() {
 
   const handleModalClose = () => setModal(null)
   const handleModalSuccess = () => { setModal(null); finances.refetch() }
+
+  const askDelete = (table: FinanceTableName, id: string) => {
+    setDeleteError(null)
+    setEntryToDelete({ table, id })
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!entryToDelete) return
+    setDeleting(true)
+    const ok = await deleteFinanceEntry(entryToDelete.table, entryToDelete.id)
+    setDeleting(false)
+    setEntryToDelete(null)
+    if (!ok) { setDeleteError(LABELS.errorSaveData); return }
+    finances.refetch()
+  }
 
   return (
     <div className="max-w-[960px] mx-auto px-4 py-5 max-sm:px-3 max-sm:pb-20">
@@ -71,6 +92,10 @@ export default function FinancesPage() {
 
       {finances.error && (
         <div className="mb-4 p-3 rounded-[10px] bg-status-red-bg text-status-red-text text-[13px]">{LABELS.errorLoadData}</div>
+      )}
+
+      {deleteError && (
+        <div className="mb-4 p-3 rounded-[10px] bg-status-red-bg text-status-red-text text-[13px]">{deleteError}</div>
       )}
 
       {/* Metric cards */}
@@ -93,10 +118,13 @@ export default function FinancesPage() {
         isLoading={finances.isLoading}
         onAddRevenue={(q) => setModal({ type: 'revenue-create', quarter: q })}
         onEditRevenue={(e) => setModal({ type: 'revenue-edit', entry: e })}
+        onDeleteRevenue={(e) => askDelete('revenue_entries', e.id)}
         onAddTax={(q) => setModal({ type: 'tax-create', quarter: q })}
         onEditTax={(e) => setModal({ type: 'tax-edit', entry: e })}
+        onDeleteTax={(e) => askDelete('tax_stays', e.id)}
         onAddMisc={(q) => setModal({ type: 'misc-create', quarter: q })}
         onEditMisc={(e) => setModal({ type: 'misc-edit', entry: e })}
+        onDeleteMisc={(e) => askDelete('misc_entries', e.id)}
       />
 
       {/* Modals */}
@@ -118,6 +146,15 @@ export default function FinancesPage() {
       {modal?.type === 'misc-edit' && (
         <MiscEntryModal mode="edit" entry={modal.entry} year={year} quarter={modal.entry.quarter as Quarter} onClose={handleModalClose} onSuccess={handleModalSuccess} />
       )}
+
+      {/* Single confirmation shared by the delete buttons of the 3 table sections */}
+      <ConfirmDialog
+        open={entryToDelete !== null}
+        message={LABELS.confirmDeleteEntry}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setEntryToDelete(null)}
+        loading={deleting}
+      />
     </div>
   )
 }

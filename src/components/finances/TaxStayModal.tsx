@@ -7,6 +7,7 @@ import ConfirmDialog from '../ui/ConfirmDialog'
 import Button from '../ui/Button'
 import { LABELS } from '../../constants/labels'
 import { supabase } from '../../lib/supabase'
+import { deleteFinanceEntry } from '../../lib/finances'
 import type { TaxStay, Quarter, GiteLabel } from '../../types/domain'
 import DateMaskedInput from './DateMaskedInput'
 
@@ -91,10 +92,11 @@ export default function TaxStayModal({ mode, entry, year, quarter, onClose, onSu
   const handleDelete = async () => {
     if (!entry) return
     setDeleting(true)
-    const { error: err } = await supabase.from('tax_stays').delete().eq('id', entry.id)
+    const ok = await deleteFinanceEntry('tax_stays', entry.id)
     setDeleting(false)
-    if (err) { console.error('Tax stay delete error:', err); setError(LABELS.errorSaveData); setShowConfirm(false); return }
-    setShowConfirm(false); onSuccess(); onClose()
+    setShowConfirm(false)
+    if (!ok) { setError(LABELS.errorSaveData); return }
+    onSuccess(); onClose()
   }
 
   const busy = saving || deleting

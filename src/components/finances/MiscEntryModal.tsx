@@ -7,6 +7,7 @@ import ConfirmDialog from '../ui/ConfirmDialog'
 import Button from '../ui/Button'
 import { LABELS } from '../../constants/labels'
 import { supabase } from '../../lib/supabase'
+import { deleteFinanceEntry } from '../../lib/finances'
 import type { MiscEntry, Quarter } from '../../types/domain'
 
 const schema = z.object({
@@ -62,10 +63,11 @@ export default function MiscEntryModal({ mode, entry, year, quarter, onClose, on
   const handleDelete = async () => {
     if (!entry) return
     setDeleting(true)
-    const { error: err } = await supabase.from('misc_entries').delete().eq('id', entry.id)
+    const ok = await deleteFinanceEntry('misc_entries', entry.id)
     setDeleting(false)
-    if (err) { console.error('Misc entry delete error:', err); setError(LABELS.errorSaveData); setShowConfirm(false); return }
-    setShowConfirm(false); onSuccess(); onClose()
+    setShowConfirm(false)
+    if (!ok) { setError(LABELS.errorSaveData); return }
+    onSuccess(); onClose()
   }
 
   const busy = saving || deleting

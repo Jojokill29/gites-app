@@ -21,10 +21,13 @@ interface FinanceTableProps {
   isLoading: boolean
   onAddRevenue: (quarter: Quarter) => void
   onEditRevenue: (entry: RevenueEntry) => void
+  onDeleteRevenue: (entry: RevenueEntry) => void
   onAddTax: (quarter: Quarter) => void
   onEditTax: (entry: TaxStay) => void
+  onDeleteTax: (entry: TaxStay) => void
   onAddMisc: (quarter: Quarter) => void
   onEditMisc: (entry: MiscEntry) => void
+  onDeleteMisc: (entry: MiscEntry) => void
 }
 
 const QUARTER_LABELS: Record<Quarter, string> = {
@@ -37,6 +40,7 @@ const QUARTER_LABELS: Record<Quarter, string> = {
 const headerClass = 'text-left text-[12px] font-medium text-text-secondary px-3 py-2'
 const cellClass = 'px-3 py-2.5 text-[13px] text-text'
 const itemClass = 'flex items-center justify-between gap-2 p-2 rounded-[8px] bg-bg'
+const rowButtonClass = '!px-2 !py-1 !text-[11px]'
 
 function GitePill({ label }: { label: string }) {
   const style = GITE_PILL[label] ?? { bg: '#E8E3DC', text: '#5C5346' }
@@ -51,7 +55,9 @@ export default function FinanceTable({
   revenuesByQuarter, taxesByQuarter, miscByQuarter,
   revenueEntriesByQuarter, taxStaysByQuarter, miscEntriesByQuarter,
   currentQuarter, isLoading,
-  onAddRevenue, onEditRevenue, onAddTax, onEditTax, onAddMisc, onEditMisc,
+  onAddRevenue, onEditRevenue, onDeleteRevenue,
+  onAddTax, onEditTax, onDeleteTax,
+  onAddMisc, onEditMisc, onDeleteMisc,
 }: FinanceTableProps) {
   const [openQuarter, setOpenQuarter] = useState<Quarter | null>(null)
   const quarters: Quarter[] = [1, 2, 3, 4]
@@ -104,7 +110,10 @@ export default function FinanceTable({
                           <span className="text-[13px] text-text font-medium ml-2">{formatEUR(Number(e.amount))}</span>
                           {e.notes && <p className="text-[12px] text-text-secondary mt-0.5 break-words">{e.notes}</p>}
                         </div>
-                        <Button type="button" className="!px-2 !py-1 !text-[11px]" onClick={() => onEditRevenue(e)}>Modifier</Button>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <Button type="button" className={rowButtonClass} onClick={() => onEditRevenue(e)}>Modifier</Button>
+                          <Button type="button" variant="danger" className={rowButtonClass} onClick={() => onDeleteRevenue(e)}>{LABELS.delete}</Button>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -126,7 +135,10 @@ export default function FinanceTable({
                           {t.amount != null && <span className="text-[13px] text-text font-medium ml-2">{formatEUR(Number(t.amount))}</span>}
                           {t.notes && <p className="text-[12px] text-text-secondary mt-0.5 break-words">{t.notes}</p>}
                         </div>
-                        <Button type="button" className="!px-2 !py-1 !text-[11px]" onClick={() => onEditTax(t)}>Modifier</Button>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <Button type="button" className={rowButtonClass} onClick={() => onEditTax(t)}>Modifier</Button>
+                          <Button type="button" variant="danger" className={rowButtonClass} onClick={() => onDeleteTax(t)}>{LABELS.delete}</Button>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -148,7 +160,10 @@ export default function FinanceTable({
                           </span>
                           {m.notes && <p className="text-[12px] text-text-secondary mt-0.5 break-words">{m.notes}</p>}
                         </div>
-                        <Button type="button" className="!px-2 !py-1 !text-[11px]" onClick={() => onEditMisc(m)}>Modifier</Button>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          <Button type="button" className={rowButtonClass} onClick={() => onEditMisc(m)}>Modifier</Button>
+                          <Button type="button" variant="danger" className={rowButtonClass} onClick={() => onDeleteMisc(m)}>{LABELS.delete}</Button>
+                        </div>
                       </li>
                     ))}
                   </ul>
