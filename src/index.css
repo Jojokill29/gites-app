@@ -56,6 +56,10 @@
   --color-alert-bg: oklch(0.28 0.05 30);
   --color-danger: oklch(0.72 0.13 28);
 
+  /* --- Modal veil and shadow (the only shadow in the app) --- */
+  --color-overlay: rgba(8, 8, 7, 0.62);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.5);
+
   /* --- Radii --- */
   --radius-sm: 3px;   /* pills */
   --radius-md: 4px;   /* buttons, fields, booking bars */

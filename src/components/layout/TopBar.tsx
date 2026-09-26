@@ -1,5 +1,5 @@
 import { LABELS } from '../../constants/labels'
-import { getDisplayName, getInitials } from '../../utils/displayName'
+import { getDisplayName } from '../../utils/displayName'
 import Button from '../ui/Button'
 
 interface TopBarProps {
@@ -9,28 +9,20 @@ interface TopBarProps {
 
 export default function TopBar({ email, onLogout }: TopBarProps) {
   const displayName = getDisplayName(email)
-  const initials = getInitials(email)
 
   return (
-    <header className="bg-surface border-b border-border sticky top-0 z-50 flex items-center justify-between px-5 py-3 max-sm:px-3.5 max-sm:py-2.5">
-      <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-[7px] bg-surface-alt border border-border flex items-center justify-center text-text-secondary text-[11px] font-semibold shrink-0">
-          {initials}
-        </div>
-        <div>
-          <div className="font-semibold text-[15px] text-text">
-            {LABELS.appTitle}
-          </div>
-          <div className="text-[11px] text-text-secondary">
-            {LABELS.connectedAs} {displayName}
-          </div>
-        </div>
+    <header className="bg-header border-b border-border sticky top-0 z-50 h-[52px] flex items-center justify-between gap-4 px-6 max-sm:px-4">
+      <div className="flex items-baseline gap-3 min-w-0">
+        <span className="font-semibold text-[15px] text-text whitespace-nowrap">
+          {LABELS.appTitle}
+        </span>
+        <span className="text-[13px] text-text-tertiary truncate">
+          {displayName}
+        </span>
       </div>
-      <div className="flex items-center gap-1.5">
-        <Button onClick={onLogout} className="px-2.5 py-1 text-[12px]">
-          {LABELS.logout}
-        </Button>
-      </div>
+      <Button variant="ghost" onClick={onLogout} className="h-8 px-2.5 text-[13px] font-normal">
+        {LABELS.logout}
+      </Button>
     </header>
   )
 }

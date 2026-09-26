@@ -54,13 +54,13 @@ export default function Modal({ open, onClose, children }: ModalProps) {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 bg-black/35 z-[200] flex items-center justify-center p-5"
+      className="fixed inset-0 bg-overlay z-[200] flex items-center justify-center p-6 max-sm:p-4"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose()
       }}
     >
       <div
-        className="bg-surface rounded-[10px] w-full max-w-[460px] max-h-[90vh] overflow-y-auto p-6 relative max-sm:p-[18px]"
+        className="bg-surface border border-border-hover rounded-xl shadow-modal w-full max-w-[560px] max-h-[90vh] overflow-y-auto p-[22px] relative max-sm:p-[18px]"
         onClick={(e) => e.stopPropagation()}
       >
         {children}

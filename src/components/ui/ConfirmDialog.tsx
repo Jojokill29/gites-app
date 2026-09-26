@@ -23,12 +23,18 @@ export default function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <Modal open={open} onClose={onCancel}>
-      <p className="text-sm text-text mb-5">{message}</p>
+      <p className="text-[14px] text-text mb-5">{message}</p>
       <div className="flex gap-2 max-sm:flex-col">
         <Button onClick={onCancel} disabled={loading} className="flex-1">
           {cancelLabel}
         </Button>
-        <Button variant="danger" onClick={onConfirm} disabled={loading} className="flex-1">
+        {/* Destructive action: charter colour, kept bordered so it still reads as a button */}
+        <Button
+          variant="danger"
+          onClick={onConfirm}
+          disabled={loading}
+          className="flex-1 border border-border-hover"
+        >
           {loading ? 'Suppression...' : confirmLabel}
         </Button>
       </div>

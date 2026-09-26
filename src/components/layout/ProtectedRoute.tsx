@@ -10,8 +10,8 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ user, loading, children }: ProtectedRouteProps) {
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">Chargement...</p>
+      <div className="min-h-screen flex items-center justify-center bg-bg">
+        <p className="text-[14px] text-text-tertiary">Chargement...</p>
       </div>
     )
   }
