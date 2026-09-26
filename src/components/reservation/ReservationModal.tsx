@@ -2,8 +2,8 @@ import { useState } from 'react'
 import Modal from '../ui/Modal'
 import ConfirmDialog from '../ui/ConfirmDialog'
 import ReservationForm from './ReservationForm'
-import type { ReservationFormData } from './ReservationForm'
-import { supabase } from '../../lib/supabase'
+import type { ReservationFormData } from '../../lib/reservationSchema'
+import { persistReservation, removeReservation } from '../../lib/reservations'
 import { deleteContract } from '../../lib/storage'
 import { LABELS } from '../../constants/labels'
 import type { Reservation } from '../../types/domain'
@@ -77,65 +77,22 @@ export default function ReservationModal({
     setSaving(true)
     setError(null)
 
-    // Determine final contract_path
-    let finalContractPath: string | null
-    if (pendingContractPath) {
-      finalContractPath = pendingContractPath
-    } else if (pendingRemoval) {
-      finalContractPath = null
-    } else {
-      finalContractPath = currentContractPath
-    }
-
-    const payload = {
-      gite_id: data.gite_id,
-      client_name: data.client_name,
-      start_date: String(data.start_date),
-      end_date: String(data.end_date),
-      guest_count: data.guest_count ?? null,
-      linen_sets_single: data.linen_sets_single ?? null,
-      linen_sets_double: data.linen_sets_double ?? null,
-      total_amount: data.total_amount,
-      paid_amount: data.paid_amount,
-      status: data.status,
-      notes: data.notes,
-      contract_path: finalContractPath,
-    }
-
-    console.log('Reservation payload:', JSON.stringify(payload))
-
-    const result =
-      mode === 'create'
-        ? await supabase.from('reservations').insert(payload)
-        : await supabase
-            .from('reservations')
-            .update(payload)
-            .eq('id', reservation!.id)
+    const result = await persistReservation({
+      mode,
+      reservationId: reservation?.id,
+      data,
+      currentContractPath,
+      pendingContractPath,
+      pendingRemoval,
+    })
 
     setSaving(false)
 
+    if (result.pendingCleaned) setPendingContractPath(null)
+
     if (result.error) {
-      console.error('Supabase error:', JSON.stringify(result.error, null, 2))
-      console.error('Payload sent:', JSON.stringify(payload))
-
-      // DB failed: clean up the freshly uploaded file to avoid orphans
-      if (pendingContractPath) {
-        await deleteContract(pendingContractPath)
-        setPendingContractPath(null)
-      }
-
-      if (result.error.code === '23P01') {
-        setError(LABELS.errorDateConflict)
-      } else {
-        setError(LABELS.errorSaveData)
-      }
+      setError(result.error)
       return
-    }
-
-    // DB succeeded: clean up old file from storage if replaced or removed
-    const oldPath = currentContractPath
-    if (oldPath && (pendingContractPath || pendingRemoval)) {
-      await deleteContract(oldPath)
     }
 
     onSuccess()
@@ -147,26 +104,18 @@ export default function ReservationModal({
     setDeleting(true)
     setError(null)
 
-    const { error: deleteError } = await supabase
-      .from('reservations')
-      .delete()
-      .eq('id', reservation.id)
+    const { error: deleteError } = await removeReservation({
+      reservationId: reservation.id,
+      currentContractPath,
+      pendingContractPath,
+    })
 
     setDeleting(false)
 
     if (deleteError) {
-      console.error('Delete error:', deleteError)
-      setError(LABELS.errorSaveData)
+      setError(deleteError)
       setShowConfirm(false)
       return
-    }
-
-    // DB delete succeeded: clean up contract file from storage
-    if (currentContractPath) {
-      await deleteContract(currentContractPath)
-    }
-    if (pendingContractPath) {
-      await deleteContract(pendingContractPath)
     }
 
     setShowConfirm(false)

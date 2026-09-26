@@ -1,15 +1,20 @@
 import { useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { NavLink, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { addDays, addMonths, subMonths, format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { useReservations } from '../hooks/useReservations'
+import { useIsMobile } from '../hooks/useIsMobile'
 import CalendarGrid from '../components/calendar/CalendarGrid'
 import CalendarLegend from '../components/calendar/CalendarLegend'
+import MobileCalendar from '../components/calendar/MobileCalendar'
+import UpcomingArrivals from '../components/calendar/UpcomingArrivals'
 import ReservationModal from '../components/reservation/ReservationModal'
 import Button from '../components/ui/Button'
 import { LABELS } from '../constants/labels'
 import type { Gite } from '../types/domain'
 import type { Reservation } from '../types/domain'
+
+const MAX_UPCOMING_ARRIVALS = 3
 
 interface CalendarPageProps {
   gites: Gite[]
@@ -24,6 +29,8 @@ export default function CalendarPage({ gites }: CalendarPageProps) {
   const { giteId } = useParams<{ giteId: string }>()
   const [searchParams, setSearchParams] = useSearchParams()
   const [modal, setModal] = useState<ModalState>(null)
+  const isMobile = useIsMobile()
+  const navigate = useNavigate()
 
   // Read month from URL or default to current month
   const monthParam = searchParams.get('month')
@@ -71,6 +78,96 @@ export default function CalendarPage({ gites }: CalendarPageProps) {
   const handleModalSuccess = () => {
     refetch()
     setModal(null)
+  }
+
+  if (isMobile) {
+    // Tapping a bar opens the stay detail screen instead of the desktop modal
+    const openDetail = (reservationId: string) =>
+      navigate(`/reservations/${reservationId}`)
+
+    const todayStr = format(new Date(), 'yyyy-MM-dd')
+    const upcoming = reservations
+      .filter((r) => r.start_date >= todayStr)
+      .slice(0, MAX_UPCOMING_ARRIVALS)
+
+    const monthUrl = (giteIdForTab: string) => {
+      const monthQuery = searchParams.get('month')
+      return monthQuery
+        ? `/calendar/${giteIdForTab}?month=${monthQuery}`
+        : `/calendar/${giteIdForTab}`
+    }
+
+    return (
+      <div className="px-3">
+        {/* Gite tabs, flush with the header */}
+        <div className="-mx-3 px-5 flex gap-6 border-b border-border overflow-x-auto scrollbar-none">
+          {gites.map((g) => (
+            <NavLink
+              key={g.id}
+              to={monthUrl(g.id)}
+              className={({ isActive }) =>
+                `h-11 flex items-center gap-1.5 shrink-0 border-b-2 text-[14px] ${
+                  isActive
+                    ? 'text-text font-medium border-action'
+                    : 'text-text-tertiary border-transparent'
+                }`
+              }
+            >
+              {g.name}
+              <span className="font-mono text-[11px] text-text-muted">
+                {g.capacity}p
+              </span>
+            </NavLink>
+          ))}
+        </div>
+
+        {/* Month title and month navigation */}
+        <div className="flex justify-between items-center py-3">
+          <h1 className="font-heading font-semibold text-[20px] m-0">
+            {capitalizedMonth}
+          </h1>
+          <div className="flex border border-border-hover rounded-md overflow-hidden shrink-0">
+            <button
+              type="button"
+              onClick={handlePrevMonth}
+              aria-label={LABELS.previousMonth}
+              className="w-11 h-10 flex items-center justify-center text-[16px] text-text border-r border-border-hover"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={handleToday}
+              className="h-10 px-3 flex items-center text-[14px] text-text border-r border-border-hover"
+            >
+              {LABELS.today}
+            </button>
+            <button
+              type="button"
+              onClick={handleNextMonth}
+              aria-label={LABELS.nextMonth}
+              className="w-11 h-10 flex items-center justify-center text-[16px] text-text"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+
+        <MobileCalendar
+          year={year}
+          month={month}
+          reservations={reservations}
+          loading={loading}
+          onClickReservation={openDetail}
+        />
+
+        {/* No legend on mobile: the status is read on the detail screen */}
+        <UpcomingArrivals
+          reservations={upcoming}
+          onClickReservation={openDetail}
+        />
+      </div>
+    )
   }
 
   return (

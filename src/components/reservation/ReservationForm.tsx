@@ -1,63 +1,15 @@
 import { useForm, useWatch, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import Button from '../ui/Button'
 import ContractField from '../contracts/ContractField'
 import { LABELS } from '../../constants/labels'
 import { STATUSES } from '../../constants/statuses'
+import {
+  reservationSchema,
+  buildDefaultValues,
+  type ReservationFormData,
+} from '../../lib/reservationSchema'
 import type { Reservation } from '../../types/domain'
-
-// --- Zod schema ---
-// Using z.number() directly (not z.coerce) because we register inputs
-// with { valueAsNumber: true } so react-hook-form delivers numbers.
-
-const reservationSchema = z
-  .object({
-    gite_id: z.string(),
-    client_name: z.string().trim().min(1, 'Le nom du client est obligatoire.'),
-    start_date: z.string().min(1, "La date d'arrivée est obligatoire."),
-    end_date: z.string().min(1, 'La date de départ est obligatoire.'),
-    guest_count: z.preprocess(
-      (v) => (v === '' || v === null || Number.isNaN(v) ? undefined : v),
-      z.coerce.number().int().positive('Doit être supérieur à 0.').optional(),
-    ),
-    linen_sets_single: z.preprocess(
-      (v) => (v === '' || v === null || Number.isNaN(v) ? undefined : v),
-      z.coerce.number().int().nonnegative('Doit être positif ou nul.').optional(),
-    ),
-    linen_sets_double: z.preprocess(
-      (v) => (v === '' || v === null || Number.isNaN(v) ? undefined : v),
-      z.coerce.number().int().nonnegative('Doit être positif ou nul.').optional(),
-    ),
-    total_amount: z.number({ message: 'Obligatoire.' }).min(0, 'Doit être positif ou nul.'),
-    paid_amount: z.number({ message: 'Obligatoire.' }).min(0, 'Doit être positif ou nul.'),
-    status: z.enum(['pending_contract', 'pending_deposit', 'deposit_paid']),
-    notes: z.string().nullable(),
-  })
-  .refine((d) => d.end_date > d.start_date, {
-    message: "La date de départ doit être postérieure à la date d'arrivée.",
-    path: ['end_date'],
-  })
-  .refine((d) => d.paid_amount <= d.total_amount, {
-    message: 'Le montant payé ne peut pas dépasser le montant total.',
-    path: ['paid_amount'],
-  })
-
-// Explicit output type because z.preprocess types its input as unknown,
-// which conflicts with zodResolver's generic constraint.
-export type ReservationFormData = {
-  gite_id: string
-  client_name: string
-  start_date: string
-  end_date: string
-  guest_count?: number
-  linen_sets_single?: number
-  linen_sets_double?: number
-  total_amount: number
-  paid_amount: number
-  status: 'pending_contract' | 'pending_deposit' | 'deposit_paid'
-  notes: string | null
-}
 
 // --- Props ---
 
@@ -128,33 +80,11 @@ export default function ReservationForm({
     formState: { errors },
   } = useForm<ReservationFormData>({
     resolver: zodResolver(reservationSchema) as Resolver<ReservationFormData>,
-    defaultValues: isEdit && reservation
-      ? {
-          gite_id: reservation.gite_id,
-          client_name: reservation.client_name,
-          start_date: reservation.start_date,
-          end_date: reservation.end_date,
-          guest_count: reservation.guest_count ?? undefined,
-          linen_sets_single: reservation.linen_sets_single ?? undefined,
-          linen_sets_double: reservation.linen_sets_double ?? undefined,
-          total_amount: Number(reservation.total_amount),
-          paid_amount: Number(reservation.paid_amount),
-          status: reservation.status as ReservationFormData['status'],
-          notes: reservation.notes,
-        }
-      : {
-          gite_id: giteId,
-          client_name: '',
-          start_date: defaults?.start_date ?? '',
-          end_date: defaults?.end_date ?? '',
-          guest_count: undefined,
-          linen_sets_single: undefined,
-          linen_sets_double: undefined,
-          total_amount: undefined as unknown as number,
-          paid_amount: 0,
-          status: 'pending_contract' as const,
-          notes: null,
-        },
+    defaultValues: buildDefaultValues(
+      isEdit ? reservation : undefined,
+      giteId,
+      defaults,
+    ),
   })
 
   // Live "reste à payer" calculation
