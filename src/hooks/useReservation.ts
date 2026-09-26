@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Reservation } from '../types/domain'
 
@@ -8,6 +8,7 @@ interface UseReservationReturn {
   /** True when the row does not exist (deleted, or a stale link). */
   notFound: boolean
   error: string | null
+  refetch: () => void
 }
 
 /** Load a single reservation by id — used by the mobile detail and form screens. */
@@ -16,6 +17,9 @@ export function useReservation(id: string | undefined): UseReservationReturn {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fetchKey, setFetchKey] = useState(0)
+
+  const refetch = useCallback(() => setFetchKey((k) => k + 1), [])
 
   useEffect(() => {
     if (!id) {
@@ -45,7 +49,7 @@ export function useReservation(id: string | undefined): UseReservationReturn {
         }
         setLoading(false)
       })
-  }, [id])
+  }, [id, fetchKey])
 
-  return { reservation, loading, notFound, error }
+  return { reservation, loading, notFound, error, refetch }
 }

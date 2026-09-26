@@ -10,6 +10,10 @@ interface ConfirmDialogProps {
   confirmLabel?: string
   cancelLabel?: string
   loading?: boolean
+  /** Text shown on the confirm button while the action runs. */
+  loadingLabel?: string
+  /** False for a confirmation that is not a deletion (no danger colour). */
+  destructive?: boolean
 }
 
 export default function ConfirmDialog({
@@ -20,6 +24,8 @@ export default function ConfirmDialog({
   confirmLabel = LABELS.delete,
   cancelLabel = LABELS.cancel,
   loading = false,
+  loadingLabel = 'Suppression...',
+  destructive = true,
 }: ConfirmDialogProps) {
   return (
     <Modal open={open} onClose={onCancel}>
@@ -30,12 +36,12 @@ export default function ConfirmDialog({
         </Button>
         {/* Destructive action: charter colour, kept bordered so it still reads as a button */}
         <Button
-          variant="danger"
+          variant={destructive ? 'danger' : 'primary'}
           onClick={onConfirm}
           disabled={loading}
-          className="flex-1 border border-border-hover"
+          className={`flex-1 ${destructive ? 'border border-border-hover' : ''}`}
         >
-          {loading ? 'Suppression...' : confirmLabel}
+          {loading ? loadingLabel : confirmLabel}
         </Button>
       </div>
     </Modal>
