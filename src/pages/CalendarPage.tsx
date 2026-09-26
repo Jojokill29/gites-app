@@ -159,6 +159,8 @@ export default function CalendarPage({ gites }: CalendarPageProps) {
           reservations={reservations}
           loading={loading}
           onClickReservation={openDetail}
+          onSwipeNextMonth={handleNextMonth}
+          onSwipePreviousMonth={handlePrevMonth}
         />
 
         {/* No legend on mobile: the status is read on the detail screen */}

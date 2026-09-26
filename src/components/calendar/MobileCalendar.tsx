@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { getMonth, isSameDay } from 'date-fns'
 import { buildMonthGrid } from '../../utils/calendar'
 import { buildWeekBars, laneCount } from '../../utils/weekBars'
@@ -7,12 +7,17 @@ import type { Reservation } from '../../types/domain'
 
 const WEEKDAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
+/** Horizontal distance a swipe must cover before it changes month. */
+const SWIPE_MIN_DISTANCE = 50
+
 interface MobileCalendarProps {
   year: number
   month: number
   reservations: Reservation[]
   loading: boolean
   onClickReservation: (reservationId: string) => void
+  onSwipeNextMonth: () => void
+  onSwipePreviousMonth: () => void
 }
 
 /**
@@ -26,15 +31,61 @@ export default function MobileCalendar({
   reservations,
   loading,
   onClickReservation,
+  onSwipeNextMonth,
+  onSwipePreviousMonth,
 }: MobileCalendarProps) {
   const today = useMemo(() => new Date(), [])
   const weeks = useMemo(() => buildMonthGrid(year, month), [year, month])
+
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  // A horizontal drag still fires a click on the element underneath, which
+  // would open the stay that happened to be under the finger: the next click
+  // is swallowed when a swipe was recognised.
+  const swiped = useRef(false)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0]
+    touchStart.current = { x: touch.clientX, y: touch.clientY }
+    swiped.current = false
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const start = touchStart.current
+    touchStart.current = null
+    if (!start) return
+
+    const touch = e.changedTouches[0]
+    const dx = touch.clientX - start.x
+    const dy = touch.clientY - start.y
+
+    // Too short, or more vertical than horizontal: leave scrolling and taps be
+    if (Math.abs(dx) < SWIPE_MIN_DISTANCE) return
+    if (Math.abs(dx) <= Math.abs(dy)) return
+
+    swiped.current = true
+    if (dx < 0) {
+      onSwipeNextMonth()
+    } else {
+      onSwipePreviousMonth()
+    }
+  }
 
   return (
     <div
       className={`bg-calendar border border-border rounded-lg overflow-hidden transition-opacity ${
         loading ? 'opacity-60' : ''
       }`}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={() => {
+        touchStart.current = null
+      }}
+      onClickCapture={(e) => {
+        if (!swiped.current) return
+        swiped.current = false
+        e.stopPropagation()
+        e.preventDefault()
+      }}
     >
       {/* Weekday headers */}
       <div className="grid grid-cols-7 h-7 items-center border-b border-border text-[12px] text-text-tertiary text-center">
