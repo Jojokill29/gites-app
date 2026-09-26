@@ -22,8 +22,8 @@ interface LoginPageProps {
 }
 
 const inputClass =
-  'w-full px-3 py-2 text-[14px] border border-border rounded-[10px] bg-surface focus:outline-none focus:ring-2 focus:ring-status-blue focus:border-transparent'
-const labelClass = 'block text-[12px] font-medium text-text-secondary mb-1'
+  'w-full px-2.5 py-2 text-[14px] text-text bg-bg border border-border-input rounded-md placeholder:text-text-muted focus:outline-none focus:border-focus'
+const labelClass = 'block text-[13px] text-text-secondary mb-1.5'
 
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const [error, setError] = useState<string | null>(null)
@@ -52,7 +52,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg px-4">
       <div className="w-full max-w-sm">
-        <h1 className="font-heading font-semibold text-[24px] text-text text-center mb-8">
+        <h1 className="font-heading font-semibold text-[20px] text-text text-center mb-8">
           {LABELS.appTitle}
         </h1>
 
@@ -90,7 +90,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           </div>
 
           {error && (
-            <div className="p-3 rounded-[10px] bg-status-red-bg text-status-red-text text-[13px] text-center">
+            <div className="px-2.5 py-2 rounded-md bg-alert-bg text-alert text-[13px] text-center">
               {error}
             </div>
           )}

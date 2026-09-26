@@ -4,12 +4,6 @@ import { LABELS } from '../../constants/labels'
 import { formatEUR } from '../../utils/money'
 import type { RevenueEntry, TaxStay, MiscEntry, Quarter } from '../../types/domain'
 
-const GITE_PILL: Record<string, { bg: string; text: string }> = {
-  'Le Vallon': { bg: '#E6F1FB', text: '#0C447C' },
-  'La Salmonière': { bg: '#E1F5EE', text: '#085041' },
-  'Annexe': { bg: '#E8E3DC', text: '#5C5346' },
-}
-
 interface FinanceTableProps {
   revenuesByQuarter: Record<Quarter, number>
   taxesByQuarter: Record<Quarter, number>
@@ -37,15 +31,15 @@ const QUARTER_LABELS: Record<Quarter, string> = {
   4: 'T4 — oct à déc',
 }
 
-const headerClass = 'text-left text-[12px] font-medium text-text-secondary px-3 py-2'
-const cellClass = 'px-3 py-2.5 text-[13px] text-text'
-const itemClass = 'flex items-center justify-between gap-2 p-2 rounded-[8px] bg-bg'
-const rowButtonClass = '!px-2 !py-1 !text-[11px]'
+const headerClass = 'text-left text-[12px] text-text-tertiary px-3 py-2'
+const cellClass = 'px-3 py-2.5 text-[13px] text-text tabular-nums'
+const itemClass = 'flex items-center justify-between gap-2 p-2 rounded-md border border-border bg-bg'
+const rowButtonClass = '!h-7 !px-2 !text-[11px]'
 
+// Neutral pill: in this theme colour is reserved for booking statuses
 function GitePill({ label }: { label: string }) {
-  const style = GITE_PILL[label] ?? { bg: '#E8E3DC', text: '#5C5346' }
   return (
-    <span className="inline-block px-1.5 py-0.5 rounded-[4px] text-[11px] font-medium" style={{ backgroundColor: style.bg, color: style.text }}>
+    <span className="inline-block px-1.5 py-0.5 rounded-sm border border-border bg-surface text-text-secondary text-[11px]">
       {label}
     </span>
   )
@@ -82,7 +76,7 @@ export default function FinanceTable({
         return (
           <div key={q}>
             <div
-              className={`flex items-center cursor-pointer hover:bg-surface-alt transition-colors border-b border-border ${isCurrent ? 'bg-status-blue-bg font-medium' : ''}`}
+              className={`flex items-center cursor-pointer hover:bg-surface-alt transition-colors border-b border-border ${isCurrent ? 'bg-surface-alt font-medium' : ''}`}
               onClick={() => setOpenQuarter(isOpen ? null : q)}
             >
               <span className={`${cellClass} flex-1`}>
@@ -95,7 +89,7 @@ export default function FinanceTable({
             </div>
 
             {isOpen && (
-              <div className="bg-surface-alt border-b border-border px-3 py-3">
+              <div className="bg-calendar border-b border-border px-3 py-3">
                 {/* Revenue entries */}
                 <h4 className="text-[13px] font-medium text-text mb-2">{LABELS.revenueSection}</h4>
                 {revenueEntriesByQuarter[q].length === 0 ? (
@@ -107,7 +101,7 @@ export default function FinanceTable({
                         <div className="flex-1 min-w-0">
                           <GitePill label={e.gite_label} />
                           {e.entry_date && <span className="text-[12px] text-text-secondary ml-2">{e.entry_date}</span>}
-                          <span className="text-[13px] text-text font-medium ml-2">{formatEUR(Number(e.amount))}</span>
+                          <span className="text-[13px] text-text font-medium tabular-nums ml-2">{formatEUR(Number(e.amount))}</span>
                           {e.notes && <p className="text-[12px] text-text-secondary mt-0.5 break-words">{e.notes}</p>}
                         </div>
                         <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -131,8 +125,8 @@ export default function FinanceTable({
                         <div className="flex-1 min-w-0">
                           <GitePill label={t.gite_label} />
                           {t.stay_dates && <span className="text-[12px] text-text-secondary ml-2">{t.stay_dates}</span>}
-                          <span className="text-[12px] text-text-secondary ml-2">{t.nights_count}n · {t.adult_count}ad</span>
-                          {t.amount != null && <span className="text-[13px] text-text font-medium ml-2">{formatEUR(Number(t.amount))}</span>}
+                          <span className="font-mono text-[11px] text-text-muted ml-2">{t.nights_count}n · {t.adult_count}ad</span>
+                          {t.amount != null && <span className="text-[13px] text-text font-medium tabular-nums ml-2">{formatEUR(Number(t.amount))}</span>}
                           {t.notes && <p className="text-[12px] text-text-secondary mt-0.5 break-words">{t.notes}</p>}
                         </div>
                         <div className="flex items-center gap-1.5 flex-shrink-0">

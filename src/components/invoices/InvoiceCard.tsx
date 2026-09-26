@@ -36,11 +36,11 @@ export default function InvoiceCard({ invoice, onClick, onDelete }: Props) {
       <button
         type="button"
         onClick={onClick}
-        className="bg-surface border border-border rounded-[10px] overflow-hidden flex flex-col hover:border-border-hover hover:shadow-sm transition-all cursor-pointer text-left w-full"
+        className="bg-surface border border-border rounded-md overflow-hidden flex flex-col hover:border-border-hover hover:bg-surface-alt transition-colors cursor-pointer text-left w-full"
         aria-label={`${invoice.name} — ${formattedDate}`}
       >
         {/* Thumbnail area */}
-        <div className="w-full h-32 bg-surface-alt flex items-center justify-center overflow-hidden">
+        <div className="w-full h-32 bg-bg flex items-center justify-center overflow-hidden">
           {pdf ? (
             <PdfIcon />
           ) : thumbUrl ? (
@@ -57,7 +57,7 @@ export default function InvoiceCard({ invoice, onClick, onDelete }: Props) {
         {/* Caption */}
         <div className="p-2.5">
           <p className="text-[13px] font-medium text-text truncate">{invoice.name}</p>
-          <p className="text-[12px] text-text-secondary mt-0.5">{formattedDate}</p>
+          <p className="font-mono text-[11px] text-text-muted mt-0.5">{formattedDate}</p>
         </div>
       </button>
 
@@ -65,7 +65,7 @@ export default function InvoiceCard({ invoice, onClick, onDelete }: Props) {
       <button
         type="button"
         onClick={onDelete}
-        className="absolute top-1.5 right-1.5 w-8 h-8 flex items-center justify-center rounded-full bg-surface/90 border border-border text-text-secondary hover:text-status-red-text hover:border-status-red transition-colors"
+        className="absolute top-1.5 right-1.5 w-8 h-8 flex items-center justify-center rounded-md bg-surface border border-border-hover text-text-tertiary hover:text-danger hover:bg-surface-hover transition-colors"
         aria-label={`${LABELS.invoiceDeleteAria} ${invoice.name}`}
       >
         <TrashIcon />

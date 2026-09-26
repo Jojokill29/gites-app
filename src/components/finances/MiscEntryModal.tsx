@@ -31,8 +31,8 @@ interface Props {
 }
 
 const inputClass =
-  'w-full px-3 py-2 text-[14px] border border-border rounded-[10px] bg-surface focus:outline-none focus:ring-2 focus:ring-status-blue focus:border-transparent'
-const labelClass = 'block text-[12px] font-medium text-text-secondary mb-1'
+  'w-full px-2.5 py-2 text-[14px] text-text bg-bg border border-border-input rounded-md placeholder:text-text-muted focus:outline-none focus:border-focus'
+const labelClass = 'block text-[13px] text-text-secondary mb-1.5'
 
 export default function MiscEntryModal({ mode, entry, year, quarter, onClose, onSuccess }: Props) {
   const isEdit = mode === 'edit'
@@ -76,10 +76,10 @@ export default function MiscEntryModal({ mode, entry, year, quarter, onClose, on
     <>
       <Modal open onClose={onClose}>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <h2 className="font-semibold text-[18px] text-text mb-4 pr-8">
+          <h2 className="font-semibold text-[17px] text-text mb-4 pr-8">
             {isEdit ? LABELS.editMiscEntry : LABELS.newMiscEntry}
           </h2>
-          {error && <div className="mb-4 p-3 rounded-[10px] bg-status-red-bg text-status-red-text text-[13px]">{error}</div>}
+          {error && <div className="mb-4 px-2.5 py-2 rounded-md bg-alert-bg text-alert text-[13px]">{error}</div>}
 
           <div className="mb-3">
             <label className={labelClass}>{LABELS.labelField}</label>
@@ -98,10 +98,11 @@ export default function MiscEntryModal({ mode, entry, year, quarter, onClose, on
             <textarea rows={2} {...register('notes')} className={`${inputClass} resize-y`} />
           </div>
 
-          <div className="flex gap-2 max-sm:flex-col">
-            <Button type="submit" disabled={busy} className="flex-1">{saving ? 'Enregistrement...' : LABELS.save}</Button>
-            {isEdit && <Button type="button" variant="danger" onClick={() => setShowConfirm(true)} disabled={busy} className="flex-1">{LABELS.delete}</Button>}
-            <Button type="button" onClick={onClose} disabled={busy} className="flex-1">{LABELS.cancel}</Button>
+          <div className="flex items-center gap-2 border-t border-border pt-4 max-sm:flex-col-reverse max-sm:items-stretch">
+            {isEdit && <Button type="button" variant="danger" onClick={() => setShowConfirm(true)} disabled={busy}>{LABELS.delete}</Button>}
+            <div className="flex-1 max-sm:hidden" />
+            <Button type="button" onClick={onClose} disabled={busy}>{LABELS.cancel}</Button>
+            <Button type="submit" variant="primary" disabled={busy}>{saving ? 'Enregistrement...' : LABELS.save}</Button>
           </div>
         </form>
       </Modal>

@@ -11,8 +11,8 @@ import { validateInvoiceFile, prepareInvoiceFile } from '../../utils/invoiceFile
 
 const L = LABELS.invoices.errors
 const inputClass =
-  'w-full px-3 py-2 text-[14px] border border-border rounded-[10px] bg-surface focus:outline-none focus:ring-2 focus:ring-status-blue focus:border-transparent'
-const labelClass = 'block text-[12px] font-medium text-text-secondary mb-1'
+  'w-full px-2.5 py-2 text-[14px] text-text bg-bg border border-border-input rounded-md placeholder:text-text-muted focus:outline-none focus:border-focus'
+const labelClass = 'block text-[13px] text-text-secondary mb-1.5'
 
 interface Props {
   onClose: () => void
@@ -123,10 +123,10 @@ export default function InvoiceUploadModal({ onClose, onSuccess }: Props) {
   return (
     <Modal open onClose={onClose}>
       <form onSubmit={handleSubmit} noValidate>
-        <h2 className="font-semibold text-[18px] text-text mb-4">{LABELS.uploadInvoice}</h2>
+        <h2 className="font-semibold text-[17px] text-text mb-4">{LABELS.uploadInvoice}</h2>
 
         {formError && (
-          <div className="mb-4 p-3 rounded-[10px] bg-status-red-bg text-status-red-text text-[13px]">
+          <div className="mb-4 px-2.5 py-2 rounded-md bg-alert-bg text-alert text-[13px]">
             {formError}
           </div>
         )}
@@ -139,13 +139,13 @@ export default function InvoiceUploadModal({ onClose, onSuccess }: Props) {
             type="file"
             accept="application/pdf,image/jpeg,image/png"
             onChange={handleFileChange}
-            className="w-full text-[13px] text-text-secondary file:mr-3 file:py-1.5 file:px-3 file:rounded-[8px] file:border file:border-border file:text-[13px] file:font-medium file:bg-surface file:text-text file:cursor-pointer hover:file:bg-surface-alt"
+            className="w-full text-[13px] text-text-secondary file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border file:border-border-hover file:text-[13px] file:font-medium file:bg-surface file:text-text file:cursor-pointer hover:file:bg-surface-hover"
           />
           {fileError && (
             <p className="mt-1 text-[12px] text-status-red-text">{fileError}</p>
           )}
           {selectedFile && !fileError && (
-            <p className="mt-1 text-[12px] text-text-secondary">
+            <p className="mt-1 text-[12px] text-text-muted">
               {selectedFile.name}
             </p>
           )}
@@ -184,18 +184,18 @@ export default function InvoiceUploadModal({ onClose, onSuccess }: Props) {
           />
         </div>
 
-        <div className="flex gap-2 max-sm:flex-col">
-          <Button type="submit" disabled={saving} variant="primary" className="flex-1">
+        <div className="flex items-center justify-end gap-2 border-t border-border pt-4 max-sm:flex-col-reverse max-sm:items-stretch">
+          <Button type="submit" disabled={saving} variant="primary">
             {saving ? (
               <>
-                <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span className="w-3.5 h-3.5 border-2 border-action-text border-t-transparent rounded-full animate-spin" />
                 Envoi…
               </>
             ) : (
               LABELS.save
             )}
           </Button>
-          <Button type="button" onClick={onClose} disabled={saving} className="flex-1">
+          <Button type="button" onClick={onClose} disabled={saving}>
             {LABELS.cancel}
           </Button>
         </div>

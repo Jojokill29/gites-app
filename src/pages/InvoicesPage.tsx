@@ -126,7 +126,7 @@ export default function InvoicesPage() {
           >
             ‹
           </Button>
-          <span className="text-[15px] font-semibold text-text min-w-[90px] text-center">
+          <span className="text-[15px] font-semibold text-text tabular-nums min-w-[90px] text-center">
             T{quarter} {year}
           </span>
           <Button
@@ -150,7 +150,7 @@ export default function InvoicesPage() {
             {zipLoading ? LABELS.invoiceZipGenerating : LABELS.downloadZip}
           </Button>
           {!isLoading && (
-            <span className="text-[12px] text-text-secondary">{zipCountLabel}</span>
+            <span className="text-[12px] text-text-muted">{zipCountLabel}</span>
           )}
           {zipError && (
             <p className="text-[12px] text-status-red-text">{zipError}</p>
@@ -160,25 +160,25 @@ export default function InvoicesPage() {
 
       {/* States */}
       {isLoading && (
-        <p className="text-sm text-text-secondary">{LABELS.loading}</p>
+        <p className="text-[13px] text-text-secondary">{LABELS.loading}</p>
       )}
 
       {error && (
-        <p className="text-sm text-status-red-text">{error}</p>
+        <p className="text-[13px] text-status-red-text">{error}</p>
       )}
 
       {deleteError && (
-        <p className="text-sm text-status-red-text mb-3">{deleteError}</p>
+        <p className="text-[13px] text-status-red-text mb-3">{deleteError}</p>
       )}
 
       {!isLoading && !error && (
         <>
           {invoices.length === 0 && (
-            <p className="text-sm text-text-secondary mb-4">{LABELS.noInvoicesQuarter}</p>
+            <p className="text-[13px] text-text-secondary mb-4">{LABELS.noInvoicesQuarter}</p>
           )}
 
           {invoices.length > 0 && (
-            <p className="text-[12px] text-text-secondary mb-4">
+            <p className="text-[12px] text-text-muted mb-4">
               {countLabel} ce trimestre. {LABELS.invoiceHelperText}
             </p>
           )}
@@ -198,7 +198,7 @@ export default function InvoicesPage() {
             <button
               type="button"
               onClick={() => setShowUpload(true)}
-              className="bg-surface border border-dashed border-border rounded-[10px] flex flex-col items-center justify-center gap-2 h-[140px] hover:border-border-hover hover:bg-surface-alt transition-colors cursor-pointer text-text-secondary hover:text-text"
+              className="bg-surface border border-dashed border-border-input rounded-md flex flex-col items-center justify-center gap-2 h-[140px] hover:border-focus hover:bg-surface-alt transition-colors cursor-pointer text-text-tertiary hover:text-text"
               aria-label={LABELS.invoiceAddCard}
             >
               <span className="text-2xl leading-none">+</span>
