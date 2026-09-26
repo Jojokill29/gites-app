@@ -8,7 +8,7 @@ import { useReservation } from '../hooks/useReservation'
 import { markBalancePaid } from '../lib/reservations'
 import { STATUSES } from '../constants/statuses'
 import { LABELS } from '../constants/labels'
-import { formatEUR } from '../utils/money'
+import { computeRemaining, formatEUR, formatEURorDash } from '../utils/money'
 import { formatNights, formatWeekdayDayMonth } from '../utils/stayFormat'
 import type { Gite } from '../types/domain'
 
@@ -76,10 +76,11 @@ export default function ReservationDetailPage({
   }
 
   const status = STATUSES[reservation.status]
-  const total = Number(reservation.total_amount)
+  // The total is optional: null until the price is known
+  const total = reservation.total_amount === null ? null : Number(reservation.total_amount)
   const paid = Number(reservation.paid_amount)
-  // Never stored: always recomputed from the two amounts
-  const remaining = total - paid
+  // Never stored: always recomputed from the two amounts, null without a total
+  const remaining = computeRemaining(total, paid)
 
   const giteName = gites.find((g) => g.id === reservation.gite_id)?.name ?? ''
   const start = parseISO(reservation.start_date)
@@ -97,6 +98,8 @@ export default function ReservationDetailPage({
     .join(' · ')
 
   const handleSaveBalance = async () => {
+    // The button is hidden without a total, so this is a safety net only
+    if (total === null) return
     setSavingBalance(true)
     setError(null)
     const result = await markBalancePaid(reservation.id, total)
@@ -180,12 +183,14 @@ export default function ReservationDetailPage({
             value={formatEUR(paid)}
           />
           <TrackingRow
-            done={remaining <= 0}
+            done={remaining !== null && remaining <= 0}
             label={M.trackingBalance}
             value={
-              remaining > 0
-                ? `${formatEUR(remaining)} ${M.remainingSuffix}`
-                : formatEUR(0)
+              remaining === null
+                ? formatEURorDash(null)
+                : remaining > 0
+                  ? `${formatEUR(remaining)} ${M.remainingSuffix}`
+                  : formatEUR(0)
             }
             last
           />
@@ -195,7 +200,7 @@ export default function ReservationDetailPage({
         <div className="flex flex-col gap-1.5 text-[13px] text-text-secondary">
           <div className="flex justify-between">
             <span>{M.total}</span>
-            <span className="text-text tabular-nums">{formatEUR(total)}</span>
+            <span className="text-text tabular-nums">{formatEURorDash(total)}</span>
           </div>
           <div className="flex justify-between">
             <span>{M.paid}</span>
@@ -204,7 +209,7 @@ export default function ReservationDetailPage({
           <div className="flex justify-between">
             <span>{LABELS.remainingAmount}</span>
             <span className="text-text font-semibold tabular-nums">
-              {formatEUR(remaining)}
+              {formatEURorDash(remaining)}
             </span>
           </div>
         </div>
@@ -222,8 +227,8 @@ export default function ReservationDetailPage({
         {error && <p className="text-[13px] text-status-red-text">{error}</p>}
       </div>
 
-      {/* Balance action. Hidden once nothing is left to pay. */}
-      {remaining > 0 && (
+      {/* Balance action. Hidden once nothing is left to pay, or without a total. */}
+      {remaining !== null && remaining > 0 && (
         <div
           className="flex-none px-4 pt-3 border-t border-border"
           style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}

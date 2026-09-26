@@ -9,6 +9,7 @@ import {
   buildDefaultValues,
   type ReservationFormData,
 } from '../../lib/reservationSchema'
+import { computeRemaining, formatEURorDash } from '../../utils/money'
 import type { Reservation } from '../../types/domain'
 
 // --- Props ---
@@ -33,11 +34,6 @@ interface ReservationFormProps {
 }
 
 // --- Helpers ---
-
-const currencyFmt = new Intl.NumberFormat('fr-FR', {
-  style: 'currency',
-  currency: 'EUR',
-})
 
 // Fields: dark background, 36px high, 4px radius, light border on focus
 const fieldBase =
@@ -87,10 +83,10 @@ export default function ReservationForm({
     ),
   })
 
-  // Live "reste à payer" calculation
+  // Live "reste à payer" calculation. null when no total is entered yet.
   const watchTotal = useWatch({ control, name: 'total_amount' })
   const watchPaid = useWatch({ control, name: 'paid_amount' })
-  const remaining = (Number(watchTotal) || 0) - (Number(watchPaid) || 0)
+  const remaining = computeRemaining(watchTotal, watchPaid)
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -189,6 +185,7 @@ export default function ReservationForm({
               type="number"
               min="0"
               step="0.01"
+              placeholder="optionnel"
               {...register('total_amount', { valueAsNumber: true })}
               className={amountInputClass}
             />
@@ -212,10 +209,10 @@ export default function ReservationForm({
           <span className="text-[15px] font-semibold text-text">{LABELS.remainingAmount}</span>
           <span
             className={`text-[15px] font-semibold tabular-nums ${
-              remaining > 0 ? 'text-status-red-text' : 'text-text'
+              remaining !== null && remaining > 0 ? 'text-status-red-text' : 'text-text'
             }`}
           >
-            {currencyFmt.format(remaining)}
+            {formatEURorDash(remaining)}
           </span>
         </div>
       </div>

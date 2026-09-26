@@ -10,7 +10,7 @@ import {
   buildDefaultValues,
   type ReservationFormData,
 } from '../../lib/reservationSchema'
-import { formatEUR } from '../../utils/money'
+import { computeRemaining, formatEURorDash } from '../../utils/money'
 import { nightsBetween } from '../../utils/stayFormat'
 import type { Gite, Reservation } from '../../types/domain'
 
@@ -80,7 +80,8 @@ export default function ReservationFormMobile({
   })
 
   const values = useWatch({ control })
-  const remaining = (Number(values.total_amount) || 0) - (Number(values.paid_amount) || 0)
+  // null when no total is entered yet: the footer then shows a dash
+  const remaining = computeRemaining(values.total_amount, values.paid_amount)
 
   const startDate = values.start_date ?? ''
   const endDate = values.end_date ?? ''
@@ -228,6 +229,7 @@ export default function ReservationFormMobile({
               inputMode="decimal"
               min="0"
               step="0.01"
+              placeholder="optionnel"
               {...register('total_amount', { valueAsNumber: true })}
               className={`${fieldClass} tabular-nums`}
             />
@@ -339,7 +341,7 @@ export default function ReservationFormMobile({
         <div className="flex justify-between text-[14px]">
           <span className="text-text-secondary">{LABELS.remainingAmount}</span>
           <span className="font-semibold text-text tabular-nums">
-            {formatEUR(remaining)}
+            {formatEURorDash(remaining)}
           </span>
         </div>
         <button

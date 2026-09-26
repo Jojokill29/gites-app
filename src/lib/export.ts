@@ -82,9 +82,9 @@ export async function getReservationsCsv(): Promise<string> {
     end_date: string
     status: string
     guest_count: number | string
-    total_amount: number
+    total_amount: number | string
     paid_amount: number
-    remaining: number
+    remaining: number | string
     linen_sets_double: number | string
     linen_sets_single: number | string
     contract: string
@@ -99,9 +99,10 @@ export async function getReservationsCsv(): Promise<string> {
     end_date: r.end_date,
     status: STATUSES[r.status as StatusKey]?.label ?? r.status,
     guest_count: r.guest_count ?? '',
-    total_amount: r.total_amount,
+    // No total entered yet: both the total and the remaining cells stay empty
+    total_amount: r.total_amount ?? '',
     paid_amount: r.paid_amount,
-    remaining: r.total_amount - r.paid_amount,
+    remaining: r.total_amount === null ? '' : r.total_amount - r.paid_amount,
     linen_sets_double: r.linen_sets_double ?? '',
     linen_sets_single: r.linen_sets_single ?? '',
     contract: r.contract_path ? (r.contract_path.split('/').pop() ?? '') : '',

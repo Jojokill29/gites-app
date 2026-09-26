@@ -6,7 +6,7 @@ import { useUpcomingReservations } from '../hooks/useUpcomingReservations'
 import { STATUSES } from '../constants/statuses'
 import { LABELS } from '../constants/labels'
 import { formatDayMonth } from '../utils/stayFormat'
-import { formatEUR } from '../utils/money'
+import { computeRemaining, formatEURorDash } from '../utils/money'
 import type { Gite, Reservation } from '../types/domain'
 
 interface ReservationsPageProps {
@@ -181,7 +181,7 @@ export default function ReservationsPage({ gites }: ReservationsPageProps) {
             </div>
             {group.items.map((r) => {
               const status = STATUSES[r.status]
-              const remaining = Number(r.total_amount) - Number(r.paid_amount)
+              const remaining = computeRemaining(r.total_amount, r.paid_amount)
               return (
                 <button
                   key={r.id}
@@ -209,7 +209,7 @@ export default function ReservationsPage({ gites }: ReservationsPageProps) {
                   </span>
                   <span className="flex flex-col items-end gap-0.5">
                     <span className="text-[14px] font-medium text-text tabular-nums">
-                      {formatEUR(remaining)}
+                      {formatEURorDash(remaining)}
                     </span>
                     <span className="flex items-center gap-1.5 text-[12px] text-text-secondary">
                       <span
