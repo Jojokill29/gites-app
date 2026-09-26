@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+html{color-scheme:dark}body{margin:0;background:#141311;color:#E9E6DF;font-family:'IBM Plex Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#E9E6DF}a:hover{color:#FFFFFF}
+button,input,select,textarea{font-family:inherit}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.8)}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column">
+
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 24px;height:52px;border-bottom:1px solid #2A2824;background:#181715">
+    <div style="display:flex;align-items:baseline;gap:12px">
+      <span style="font-size:15px;font-weight:600;letter-spacing:-0.01em">Gestion des gîtes</span>
+      <span style="font-size:13px;color:#8C887F">Johan S.</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px">
+      <a href="#" style="font-size:13px;color:#A8A49B;text-decoration:none;padding:6px 10px;border-radius:4px" style-hover="background:#23211E;color:#E9E6DF">Paramètres</a>
+      <a href="#" style="font-size:13px;color:#A8A49B;text-decoration:none;padding:6px 10px;border-radius:4px" style-hover="background:#23211E;color:#E9E6DF">Déconnexion</a>
+    </div>
+  </header>
+
+  <nav style="display:flex;align-items:stretch;gap:4px;padding:0 24px;border-bottom:1px solid #2A2824;background:#181715;overflow-x:auto">
+    <sc-for list="{{ giteTabs }}" as="t" hint-placeholder-count="2">
+      <button onClick="{{ t.onClick }}" style="border:0;background:none;padding:12px 12px 10px;border-bottom:2px solid {{ t.line }};color:{{ t.color }};font-size:14px;font-weight:{{ t.weight }};cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap" style-hover="color:#E9E6DF">
+        {{ t.label }}<span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#77736A">{{ t.cap }}</span>
+      </button>
+    </sc-for>
+    <div style="width:1px;background:#2A2824;margin:10px 8px"></div>
+    <sc-for list="{{ toolTabs }}" as="t" hint-placeholder-count="3">
+      <button onClick="{{ t.onClick }}" style="border:0;background:none;padding:12px 12px 10px;border-bottom:2px solid transparent;color:#8C887F;font-size:14px;cursor:pointer;white-space:nowrap" style-hover="color:#E9E6DF">{{ t.label }}</button>
+    </sc-for>
+  </nav>
+
+  <main style="width:100%;max-width:1440px;margin:0 auto;padding:20px 24px 48px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <h1 style="margin:0;font-size:20px;font-weight:600;letter-spacing:-0.01em;min-width:168px">{{ monthLabel }}</h1>
+        <div style="display:flex;border:1px solid #34322D;border-radius:4px;overflow:hidden">
+          <button onClick="{{ prev }}" title="Mois précédent" style="border:0;background:#1C1B18;color:#E9E6DF;padding:0 11px;height:32px;cursor:pointer;font-size:14px" style-hover="background:#262420">←</button>
+          <button onClick="{{ goToday }}" style="border:0;border-left:1px solid #34322D;border-right:1px solid #34322D;background:#1C1B18;color:#E9E6DF;padding:0 12px;height:32px;cursor:pointer;font-size:13px" style-hover="background:#262420">Aujourd’hui</button>
+          <button onClick="{{ next }}" title="Mois suivant" style="border:0;background:#1C1B18;color:#E9E6DF;padding:0 11px;height:32px;cursor:pointer;font-size:14px" style-hover="background:#262420">→</button>
+        </div>
+        
+      </div>
+      <button onClick="{{ openNew }}" style="border:0;background:#E9E6DF;color:#141311;border-radius:4px;height:34px;padding:0 14px;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:10px" style-hover="background:#FFFFFF">
+        Nouvelle réservation <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;border:1px solid #B5B1A8;border-radius:3px;padding:1px 5px;color:#55524B">N</span>
+      </button>
+    </div>
+
+    <section style="border:1px solid #2A2824;border-radius:6px;background:#1A1917;overflow:hidden">
+      <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-bottom:1px solid #2A2824">
+        <sc-for list="{{ weekdays }}" as="w" hint-placeholder-count="7">
+          <div style="padding:8px 10px;font-size:12px;color:#8C887F">{{ w }}</div>
+        </sc-for>
+      </div>
+      <sc-for list="{{ weeks }}" as="week" hint-placeholder-count="5">
+        <div style="display:grid;grid-template-columns:repeat(14,minmax(0,1fr));grid-template-rows:34px 52px 14px;border-bottom:1px solid #26241F">
+          <sc-for list="{{ week.cells }}" as="cell" hint-placeholder-count="7">
+            <div onClick="{{ cell.onNew }}" style="grid-column:{{ cell.col }};grid-row:1 / -1;background:{{ cell.bg }};border-right:1px solid #26241F;padding:7px 9px;cursor:copy" style-hover="background:#201F1C">
+              <span style="font-size:12px;font-variant-numeric:tabular-nums;display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:3px;background:{{ cell.numBg }};color:{{ cell.color }};font-weight:{{ cell.weight }}">{{ cell.n }}</span>
+            </div>
+          </sc-for>
+          <sc-for list="{{ week.segs }}" as="seg" hint-placeholder-count="0">
+            <button onClick="{{ seg.onClick }}" title="{{ seg.title }}" style="grid-column:{{ seg.gc }};grid-row:2;z-index:1;margin:0 2px;background:{{ seg.bg }};border:1px solid {{ seg.bd }};border-radius:4px;padding:5px 9px;display:flex;flex-direction:column;justify-content:center;gap:2px;color:#F1EEE8;cursor:pointer;overflow:hidden;text-align:left;min-width:0" style-hover="filter:brightness(1.12)">
+              <span style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%"><span style="flex:none;width:6px;height:6px;border-radius:50%;background:{{ seg.c }}"></span>{{ seg.label }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#BDB9B0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">{{ seg.sub }}</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-for>
+    </section>
+
+    <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#A8A49B">
+      <sc-for list="{{ legend }}" as="l" hint-placeholder-count="3">
+        <span style="display:flex;align-items:center;gap:7px"><span style="width:10px;height:10px;border-radius:2px;background:{{ l.bg }};border:1px solid {{ l.bd }}"></span>{{ l.label }}</span>
+      </sc-for>
+      <span style="color:#77736A">Cliquez sur un jour libre pour créer une réservation.</span>
+    </div>
+  </main>
+</div>
+
+<sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ close }}" style="position:fixed;inset:0;background:rgba(8,8,7,0.62);z-index:20"></div>
+  <div style="position:fixed;inset:0;z-index:21;display:grid;place-items:center;padding:24px;pointer-events:none">
+    <div style="pointer-events:auto;width:min(560px,100%);max-height:calc(100vh - 48px);background:#1C1B18;border:1px solid #34322D;border-radius:8px;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,0.5)">
+      <div style="padding:18px 22px;border-bottom:1px solid #2A2824;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="display:flex;flex-direction:column;gap:3px">
+          <span style="font-size:17px;font-weight:600">{{ modalTitle }}</span>
+          <span style="font-size:13px;color:#8C887F">{{ stayLine }}</span>
+        </div>
+        <button onClick="{{ close }}" title="Fermer" style="border:1px solid #34322D;background:transparent;border-radius:4px;height:26px;padding:0 8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8C887F;cursor:pointer">Échap</button>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;overflow-x:hidden;color-scheme:dark;padding:18px 22px;display:flex;flex-direction:column;gap:24px">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;color:#A8A49B;min-width:0">Nom du client
+            <input type="text" value="{{ form.client }}" onChange="{{ on.client }}" autofocus="{{ true }}" placeholder="Famille Martin, Association…" style="width:100%;min-width:0;height:36px;background:#141311;border:1px solid #3A3833;border-radius:4px;padding:0 10px;font-size:14px;color:#E9E6DF;outline:none" style-focus="border-color:#9A968C">
+          </label>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;color:#A8A49B;min-width:0">Arrivée
+              <input type="date" value="{{ form.arr }}" onChange="{{ on.arr }}" style="width:100%;min-width:0;height:36px;background:#141311;border:1px solid #3A3833;border-radius:4px;padding:0 10px;font-size:14px;color:#E9E6DF;outline:none;color-scheme:dark" style-focus="border-color:#9A968C">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;color:#A8A49B;min-width:0">Départ
+              <input type="date" value="{{ form.dep }}" onChange="{{ on.dep }}" style="width:100%;min-width:0;height:36px;background:#141311;border:1px solid #3A3833;border-radius:4px;padding:0 10px;font-size:14px;color:#E9E6DF;outline:none;color-scheme:dark" style-focus="border-color:#9A968C">
+            </label>
+          </div>
+          <sc-if value="{{ warning }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:13px;color:oklch(0.82 0.1 40);background:oklch(0.28 0.05 30);border-radius:4px;padding:8px 10px">{{ warning }}</div>
+          </sc-if>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;color:#A8A49B;min-width:0">Personnes
+              <input type="number" min="0" value="{{ form.pers }}" onChange="{{ on.pers }}" placeholder="{{ capHint }}" style="width:100%;min-width:0;height:36px;background:#141311;border:1px solid #3A3833;border-radius:4px;padding:0 10px;font-size:14px;color:#E9E6DF;outline:none" style-focus="border-color:#9A968C">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;color:#A8A49B;min-width:0">Draps simples
+              <input type="number" min="0" value="{{ form.drapsS }}" onChange="{{ on.drapsS }}" placeholder="0" style="width:100%;min-width:0;height:36px;background:#141311;border:1px solid #3A3833;border-radius:4px;padding:0 10px;font-size:14px;color:#E9E6DF;outline:none" style-focus="border-color:#9A968C">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;color:#A8A49B;min-width:0">Draps doubles
+              <input type="number" min="0" value="{{ form.drapsD }}" onChange="{{ on.drapsD }}" placeholder="0" style="width:100%;min-width:0;height:36px;background:#141311;border:1px solid #3A3833;border-radius:4px;padding:0 10px;font-size:14px;color:#E9E6DF;outline:none" style-focus="border-color:#9A968C">
+            </label>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;border-top:1px solid #2A2824;padding-top:18px">
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;color:#A8A49B;min-width:0">Montant total
+              <div style="position:relative;display:flex">
+                <input type="number" min="0" value="{{ form.total }}" onChange="{{ on.total }}" style="width:100%;height:36px;background:#141311;border:1px solid #3A3833;border-radius:4px;padding:0 28px 0 10px;font-size:14px;color:#E9E6DF;outline:none;font-variant-numeric:tabular-nums" style-focus="border-color:#9A968C">
+                <span style="position:absolute;right:10px;top:9px;font-size:13px;color:#77736A">€</span>
+              </div>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:5px;font-size:13px;color:#A8A49B;min-width:0">Déjà encaissé
+              <div style="position:relative;display:flex">
+                <input type="number" min="0" value="{{ form.paid }}" onChange="{{ on.paid }}" style="width:100%;height:36px;background:#141311;border:1px solid #3A3833;border-radius:4px;padding:0 28px 0 10px;font-size:14px;color:#E9E6DF;outline:none;font-variant-numeric:tabular-nums" style-focus="border-color:#9A968C">
+                <span style="position:absolute;right:10px;top:9px;font-size:13px;color:#77736A">€</span>
+              </div>
+            </label>
+          </div>
+          <div style="display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:13px;color:#8C887F;border-bottom:1px solid #2A2824"><span>Acompte 30 %</span><span style="font-variant-numeric:tabular-nums">{{ acompte }}</span></div>
+            <div style="display:flex;justify-content:space-between;padding:9px 0;font-size:15px;font-weight:600"><span>Reste à payer</span><span style="font-variant-numeric:tabular-nums">{{ reste }}</span></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:13px;color:#A8A49B">Statut</span>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+              <sc-for list="{{ statusOpts }}" as="s" hint-placeholder-count="3">
+                <button onClick="{{ s.onClick }}" style="min-height:38px;border:1px solid {{ s.bd }};background:{{ s.bg }};border-radius:4px;font-size:13px;color:#E9E6DF;font-weight:{{ s.weight }};cursor:pointer;display:flex;align-items:center;gap:7px;padding:6px 10px;text-align:left;line-height:1.25">
+                  <span style="flex:none;width:7px;height:7px;border-radius:50%;background:{{ s.c }}"></span>{{ s.label }}
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px;border-top:1px solid #2A2824;padding-top:18px">
+          <textarea value="{{ form.notes }}" onChange="{{ on.notes }}" rows="3" placeholder="Notes : heure d’arrivée, remise des clés…" style="background:#141311;border:1px solid #3A3833;border-radius:4px;padding:9px 10px;font-size:14px;color:#E9E6DF;outline:none;resize:vertical" style-focus="border-color:#9A968C"></textarea>
+          <label style="display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px dashed #3F3D37;border-radius:4px;padding:11px 12px;cursor:pointer" style-hover="background:#201F1C">
+            <span style="display:flex;flex-direction:column;gap:2px">
+              <span style="font-size:14px">{{ fileLabel }}</span>
+              <span style="font-size:12px;color:#77736A">PDF, JPG ou PNG · 10 Mo max.</span>
+            </span>
+            <span style="font-size:13px;border:1px solid #3A3833;border-radius:4px;padding:5px 10px">Parcourir</span>
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange="{{ onFile }}" style="display:none">
+          </label>
+        </div>
+      </div>
+
+      <div style="padding:14px 22px;border-top:1px solid #2A2824;display:flex;align-items:center;gap:8px">
+        <sc-if value="{{ isEdit }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ remove }}" style="border:0;background:none;color:oklch(0.72 0.13 28);font-size:14px;cursor:pointer;padding:0 4px;height:36px">Supprimer</button>
+        </sc-if>
+        <div style="flex:1"></div>
+        <button onClick="{{ close }}" style="height:36px;padding:0 14px;border:1px solid #3A3833;background:transparent;color:#E9E6DF;border-radius:4px;font-size:14px;cursor:pointer" style-hover="background:#262420">Annuler</button>
+        <button onClick="{{ save }}" disabled="{{ cantSave }}" style="height:36px;padding:0 16px;border:0;background:#E9E6DF;color:#141311;border-radius:4px;font-size:14px;font-weight:500;cursor:pointer;opacity:{{ saveOpacity }}">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const DAY = 86400000;
+const d = (y, m, dd) => new Date(y, m, dd, 12);
+const pad = n => String(n).padStart(2, '0');
+const iso = t => `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`;
+const parse = s => { const [y, m, dd] = (s || '').split('-').map(Number); return y ? d(y, m - 1, dd) : null; };
+const diff = (a, b) => Math.round((b - a) / DAY);
+const MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const MC = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+const JC = ['dim.','lun.','mar.','mer.','jeu.','ven.','sam.'];
+const eur = n => (Math.round(+n || 0)).toLocaleString('fr-FR') + ' €';
+const TODAY = d(2026, 8, 26);
+const GITES = [{ id: 'vallon', name: 'Le Vallon', cap: 15 }, { id: 'salmo', name: 'La Salmonière', cap: 22 }];
+const tone = h => ({ c: `oklch(0.74 0.13 ${h})`, bg: `oklch(0.3 0.045 ${h})`, bd: `oklch(0.42 0.07 ${h})` });
+const STATUS = {
+  contrat: { label: 'Contrat en attente', ...tone(28) },
+  acompte: { label: 'Acompte en attente', ...tone(75) },
+  paye: { label: 'Acompte payé', ...tone(150) }
+};
+const col = s => ({ c: s.c, bg: s.bg, bd: s.bd });
+const fmtRange = (A, D) => `${JC[A.getDay()]} ${A.getDate()}${A.getMonth() !== D.getMonth() ? ' ' + MC[A.getMonth()] : ''} → ${JC[D.getDay()]} ${D.getDate()} ${MC[D.getMonth()]}`;
+const SEED = [
+  { id: 1, gite: 'vallon', client: 'Famille Martin', arr: '2026-09-04', dep: '2026-09-06', pers: '12', total: 1450, paid: 1450, status: 'paye' },
+  { id: 2, gite: 'vallon', client: 'Les Randonneurs du Jura', arr: '2026-09-11', dep: '2026-09-13', pers: '15', total: 1800, paid: 540, status: 'paye' },
+  { id: 3, gite: 'vallon', client: 'M. et Mme Dupont', arr: '2026-09-18', dep: '2026-09-20', pers: '10', total: 1450, paid: 0, status: 'acompte' },
+  { id: 4, gite: 'vallon', client: 'Lefèvre — anniversaire', arr: '2026-09-26', dep: '2026-09-28', pers: '14', total: 1600, paid: 480, status: 'paye' },
+  { id: 9, gite: 'vallon', client: 'Club photo de Lons', arr: '2026-10-02', dep: '2026-10-04', pers: '9', total: 1300, paid: 0, status: 'contrat' },
+  { id: 5, gite: 'salmo', client: 'Mariage Bernard', arr: '2026-09-04', dep: '2026-09-07', pers: '22', total: 2900, paid: 870, status: 'paye' },
+  { id: 6, gite: 'salmo', client: 'Séminaire Axéo', arr: '2026-09-14', dep: '2026-09-16', pers: '18', total: 2600, paid: 0, status: 'acompte' },
+  { id: 7, gite: 'salmo', client: 'Famille Rousseau', arr: '2026-09-19', dep: '2026-09-22', pers: '20', total: 3100, paid: 930, status: 'paye' },
+  { id: 8, gite: 'salmo', client: 'Garnier', arr: '2026-09-29', dep: '2026-10-02', pers: '16', total: 2400, paid: 0, status: 'contrat' }
+].map(r => ({ drapsS: '', drapsD: '', notes: '', file: '', ...r }));
+
+class Component extends DCLogic {
+  state = { y: 2026, m: 8, gite: 'vallon', res: SEED, modal: null, form: {} };
+
+  componentDidMount() {
+    this.onKey = e => {
+      const tag = (e.target.tagName || '').toLowerCase();
+      if (e.key === 'Escape' && this.state.modal) this.close();
+      else if ((e.key === 'n' || e.key === 'N') && !this.state.modal && !['input', 'textarea', 'select'].includes(tag)) { e.preventDefault(); this.openNew(); }
+    };
+    window.addEventListener('keydown', this.onKey);
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onKey); }
+
+  close = () => this.setState({ modal: null });
+  openRes = id => { const r = this.state.res.find(x => x.id === id); this.setState({ modal: id, form: { ...r, total: String(r.total ?? ''), paid: String(r.paid ?? '') } }); };
+  openNew = dt => {
+    const a = dt instanceof Date ? dt : TODAY;
+    this.setState({ modal: 'new', form: { gite: this.state.gite, client: '', arr: iso(a), dep: iso(d(a.getFullYear(), a.getMonth(), a.getDate() + 2)), pers: '', drapsS: '', drapsD: '', total: '', paid: '0', status: 'contrat', notes: '', file: '' } });
+  };
+  shift = k => this.setState(s => { const t = new Date(s.y, s.m + k, 1); return { y: t.getFullYear(), m: t.getMonth() }; });
+
+  renderVals() {
+    const { y, m, gite, res, modal, form } = this.state;
+    const G = GITES.find(g => g.id === gite);
+    const first = d(y, m, 1), n = new Date(y, m + 1, 0).getDate(), end = d(y, m, n + 1);
+    const R = res.filter(r => r.gite === gite).map(r => ({ ...r, A: parse(r.arr), D: parse(r.dep) }));
+    const open = r => () => this.openRes(r.id);
+
+    const off = (first.getDay() + 6) % 7, nw = Math.ceil((off + n) / 7);
+    const weeks = [...Array(nw)].map((_, w) => {
+      const ws = d(y, m, 1 - off + 7 * w);
+      const cells = [...Array(7)].map((_, c) => {
+        const t = d(y, m, 1 - off + 7 * w + c), inM = t.getMonth() === m, td = diff(t, TODAY) === 0;
+        return { col: `${2 * c + 1} / span 2`, n: t.getDate(), bg: inM ? (c > 4 ? '#1E1D1A' : 'transparent') : '#161513', numBg: td ? '#E9E6DF' : 'transparent', color: td ? '#141311' : inM ? '#E9E6DF' : '#55524B', weight: td ? 600 : 400, onNew: () => this.openNew(t) };
+      });
+      const segs = [];
+      R.forEach(r => {
+        const s = Math.max(2 * diff(ws, r.A) + 2, 1), e = Math.min(2 * diff(ws, r.D) + 2, 15);
+        if (e > s) {
+          const st = STATUS[r.status], nt = diff(r.A, r.D);
+          segs.push({ gc: `${s} / ${e}`, label: r.client, sub: `${r.pers || '–'} p · ${nt} nuit${nt > 1 ? 's' : ''}`, title: `${r.client} — ${fmtRange(r.A, r.D)} — ${st.label}`, ...col(st), onClick: open(r) });
+        }
+      });
+      return { cells, segs };
+    });
+
+    let nb = 0, ca = 0, paid = 0;
+    R.forEach(r => {
+      nb += Math.max(0, Math.min(diff(first, r.D), n) - Math.max(diff(first, r.A), 0));
+      if (r.A >= first && r.A < end) { ca += +r.total || 0; paid += +r.paid || 0; }
+    });
+    const stats = [
+      { label: 'Occupation', value: Math.round(nb / n * 100) + ' %' },
+      { label: 'CA', value: eur(ca) },
+      { label: 'À encaisser', value: eur(ca - paid) }
+    ];
+
+    const todo = R.filter(r => r.D > TODAY).sort((a, b) => a.A - b.A).map(r => {
+      const dd = diff(TODAY, r.A), rest = (+r.total || 0) - (+r.paid || 0);
+      let action, amount;
+      if (r.status === 'contrat') { action = 'Contrat à faire signer'; amount = '—'; }
+      else if (r.status === 'acompte') { action = 'Acompte à recevoir'; amount = eur((+r.total || 0) * 0.3); }
+      else if (rest > 0 && dd <= 14) { action = 'Solde à encaisser'; amount = eur(rest); }
+      else return null;
+      const urgent = dd <= 7;
+      return { when: dd <= 0 ? 'En cours' : dd === 1 ? 'Demain' : `Dans ${dd} j`, whenColor: urgent ? 'oklch(0.76 0.12 40)' : '#A8A49B', whenWeight: urgent ? 600 : 400, client: r.client, dates: fmtRange(r.A, r.D), action, amount, c: STATUS[r.status].c, onClick: open(r) };
+    }).filter(Boolean);
+
+    const on = {};
+    ['client', 'arr', 'dep', 'pers', 'drapsS', 'drapsD', 'total', 'paid', 'notes'].forEach(k => { on[k] = e => { const v = e.target.value; this.setState(s => ({ form: { ...s.form, [k]: v } })); }; });
+    const setF = (k, v) => () => this.setState(s => ({ form: { ...s.form, [k]: v } }));
+    const FA = parse(form.arr), FD = parse(form.dep);
+    const nights = FA && FD ? diff(FA, FD) : 0;
+    const fg = GITES.find(g => g.id === form.gite) || G;
+    let warning = '';
+    if (FA && FD && nights <= 0) warning = 'La date de départ doit être après la date d’arrivée.';
+    else if (nights > 0) {
+      const clash = res.map(r => ({ ...r, A: parse(r.arr), D: parse(r.dep) })).find(r => r.id !== modal && r.gite === form.gite && r.A < FD && r.D > FA);
+      if (clash) warning = `Chevauche la réservation « ${clash.client} » (${fmtRange(clash.A, clash.D)}).`;
+      else if (+form.pers > fg.cap) warning = `${form.pers} personnes dépasse la capacité du gîte (${fg.cap}).`;
+    }
+    const cantSave = !modal || !(form.client || '').trim() || nights <= 0;
+    const save = () => {
+      if (cantSave) return;
+      const rec = { ...form, total: +form.total || 0, paid: +form.paid || 0 };
+      this.setState(s => ({ modal: null, res: modal === 'new' ? [...s.res, { ...rec, id: Date.now() }] : s.res.map(r => r.id === modal ? { ...rec, id: modal } : r) }));
+    };
+
+    return {
+      giteTabs: GITES.map(g => { const a = g.id === gite; return { label: g.name, cap: g.cap + 'p', line: a ? '#E9E6DF' : 'transparent', color: a ? '#E9E6DF' : '#8C887F', weight: a ? 500 : 400, onClick: () => this.setState({ gite: g.id }) }; }),
+      toolTabs: ['Finances', 'Factures', 'Export'].map(label => ({ label, onClick: () => {} })),
+      monthLabel: `${MOIS[m]} ${y}`,
+      prev: () => this.shift(-1), next: () => this.shift(1), goToday: () => this.setState({ y: TODAY.getFullYear(), m: TODAY.getMonth() }),
+      openNew: () => this.openNew(),
+      stats, legend: Object.values(STATUS),
+      weekdays: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'], weeks,
+      showTodo: (this.props.showTodo ?? true) && todo.length > 0, todo, todoCount: String(todo.length),
+      modalOpen: !!modal, isEdit: modal && modal !== 'new',
+      modalTitle: modal === 'new' ? 'Nouvelle réservation' : (form.client || 'Réservation'),
+      stayLine: nights > 0 ? `${fg.name} · ${fmtRange(FA, FD)} · ${nights} nuit${nights > 1 ? 's' : ''}` : fg.name,
+      form, on, capHint: `max. ${fg.cap}`, warning,
+      acompte: eur((+form.total || 0) * 0.3),
+      reste: eur((+form.total || 0) - (+form.paid || 0)),
+      statusOpts: Object.entries(STATUS).map(([k, s]) => { const sel = form.status === k; return { label: s.label, c: s.c, bg: sel ? s.bg : 'transparent', bd: sel ? s.bd : '#3A3833', weight: sel ? 500 : 400, onClick: setF('status', k) }; }),
+      fileLabel: form.file || 'Joindre le contrat signé',
+      onFile: e => { const f = e.target.files && e.target.files[0]; if (f) this.setState(s => ({ form: { ...s.form, file: f.name } })); },
+      close: this.close, save, cantSave, saveOpacity: cantSave ? 0.4 : 1,
+      remove: () => this.setState(s => ({ modal: null, res: s.res.filter(r => r.id !== modal) }))
+    };
+  }
+}
+</script>
+</body>
+</html>
