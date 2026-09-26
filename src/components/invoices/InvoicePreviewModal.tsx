@@ -1,29 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
 import Button from '../ui/Button'
-import ConfirmDialog from '../ui/ConfirmDialog'
 import { LABELS } from '../../constants/labels'
-import { getInvoiceSignedUrl, deleteInvoice } from '../../lib/storage'
-import { supabase } from '../../lib/supabase'
+import { getInvoiceSignedUrl } from '../../lib/storage'
 import type { Invoice } from '../../types/domain'
 
 interface Props {
   invoice: Invoice
   onClose: () => void
-  onDeleted: () => void
+  /** Opens the shared delete confirmation owned by InvoicesPage. */
+  onRequestDelete: () => void
 }
 
 function getFileType(filePath: string): 'pdf' | 'image' {
   return filePath.endsWith('.pdf') ? 'pdf' : 'image'
 }
 
-export default function InvoicePreviewModal({ invoice, onClose, onDeleted }: Props) {
+export default function InvoicePreviewModal({ invoice, onClose, onRequestDelete }: Props) {
   const overlayRef = useRef<HTMLDivElement>(null)
   const [signedUrl, setSignedUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [urlError, setUrlError] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const fileType = getFileType(invoice.file_path)
 
@@ -46,29 +42,6 @@ export default function InvoicePreviewModal({ invoice, onClose, onDeleted }: Pro
     return () => { document.body.style.overflow = '' }
   }, [])
 
-  async function handleDelete() {
-    setDeleting(true)
-    setDeleteError(null)
-    const { error: dbError } = await supabase
-      .from('invoices')
-      .delete()
-      .eq('id', invoice.id)
-
-    if (dbError) {
-      console.error('Invoice delete DB error:', dbError)
-      setDeleteError(LABELS.invoiceDeleteError)
-      setDeleting(false)
-      setShowConfirm(false)
-      return
-    }
-
-    await deleteInvoice(invoice.file_path)
-    setDeleting(false)
-    setShowConfirm(false)
-    onDeleted()
-    onClose()
-  }
-
   return (
     <>
       <div
@@ -87,12 +60,7 @@ export default function InvoicePreviewModal({ invoice, onClose, onDeleted }: Pro
           <div className="flex items-center justify-between gap-3 mb-3 flex-shrink-0">
             <p className="font-medium text-text text-[15px] truncate">{invoice.name}</p>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <Button
-                type="button"
-                variant="danger"
-                onClick={() => setShowConfirm(true)}
-                disabled={deleting}
-              >
+              <Button type="button" variant="danger" onClick={onRequestDelete}>
                 {LABELS.delete}
               </Button>
               <Button type="button" onClick={onClose}>
@@ -100,10 +68,6 @@ export default function InvoicePreviewModal({ invoice, onClose, onDeleted }: Pro
               </Button>
             </div>
           </div>
-
-          {deleteError && (
-            <p className="mb-2 text-[13px] text-status-red-text flex-shrink-0">{deleteError}</p>
-          )}
 
           {/* Content */}
           <div className="flex-1 min-h-0 flex items-center justify-center">
@@ -143,14 +107,6 @@ export default function InvoicePreviewModal({ invoice, onClose, onDeleted }: Pro
           )}
         </div>
       </div>
-
-      <ConfirmDialog
-        open={showConfirm}
-        message={LABELS.confirmDeleteInvoice}
-        onConfirm={handleDelete}
-        onCancel={() => setShowConfirm(false)}
-        loading={deleting}
-      />
     </>
   )
 }

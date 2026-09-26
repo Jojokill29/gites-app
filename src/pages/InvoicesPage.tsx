@@ -4,9 +4,11 @@ import Button from '../components/ui/Button'
 import InvoiceCard from '../components/invoices/InvoiceCard'
 import InvoiceUploadModal from '../components/invoices/InvoiceUploadModal'
 import InvoicePreviewModal from '../components/invoices/InvoicePreviewModal'
+import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { LABELS } from '../constants/labels'
 import { useInvoices } from '../hooks/useInvoices'
-import { getInvoicesTotalSize } from '../lib/storage'
+import { supabase } from '../lib/supabase'
+import { getInvoicesTotalSize, deleteInvoice } from '../lib/storage'
 import { buildInvoicesZip, downloadBlob } from '../lib/export'
 import type { Invoice, Quarter } from '../types/domain'
 
@@ -36,6 +38,10 @@ export default function InvoicesPage() {
   const [totalSize, setTotalSize] = useState<number | null>(null)
   const [zipLoading, setZipLoading] = useState(false)
   const [zipError, setZipError] = useState<string | null>(null)
+  // Delete flow lives here so the grid trash icon and the preview modal share it.
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const { invoices, isLoading, error, refetch } = useInvoices(year, quarter)
 
@@ -76,6 +82,32 @@ export default function InvoicesPage() {
     } finally {
       setZipLoading(false)
     }
+  }
+
+  async function handleConfirmDelete() {
+    if (!invoiceToDelete) return
+    setDeleting(true)
+    setDeleteError(null)
+
+    const { error: dbError } = await supabase
+      .from('invoices')
+      .delete()
+      .eq('id', invoiceToDelete.id)
+
+    if (dbError) {
+      console.error('Invoice delete DB error:', dbError)
+      setDeleteError(LABELS.invoiceDeleteError)
+      setDeleting(false)
+      setInvoiceToDelete(null)
+      return
+    }
+
+    // DB row is gone first, so a Storage failure only leaves an orphan file.
+    await deleteInvoice(invoiceToDelete.file_path)
+    setDeleting(false)
+    setInvoiceToDelete(null)
+    setPreviewInvoice(null)
+    refetch()
   }
 
   const countLabel = invoices.length === 1 ? '1 facture' : `${invoices.length} factures`
@@ -135,6 +167,10 @@ export default function InvoicesPage() {
         <p className="text-sm text-status-red-text">{error}</p>
       )}
 
+      {deleteError && (
+        <p className="text-sm text-status-red-text mb-3">{deleteError}</p>
+      )}
+
       {!isLoading && !error && (
         <>
           {invoices.length === 0 && (
@@ -154,6 +190,7 @@ export default function InvoicesPage() {
                 key={invoice.id}
                 invoice={invoice}
                 onClick={() => setPreviewInvoice(invoice)}
+                onDelete={() => { setDeleteError(null); setInvoiceToDelete(invoice) }}
               />
             ))}
 
@@ -184,9 +221,18 @@ export default function InvoicesPage() {
         <InvoicePreviewModal
           invoice={previewInvoice}
           onClose={() => setPreviewInvoice(null)}
-          onDeleted={() => { setPreviewInvoice(null); refetch() }}
+          onRequestDelete={() => { setDeleteError(null); setInvoiceToDelete(previewInvoice) }}
         />
       )}
+
+      {/* Single confirmation shared by the grid trash icons and the preview modal */}
+      <ConfirmDialog
+        open={invoiceToDelete !== null}
+        message={LABELS.confirmDeleteInvoice}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setInvoiceToDelete(null)}
+        loading={deleting}
+      />
     </div>
   )
 }
