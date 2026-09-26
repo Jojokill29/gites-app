@@ -153,6 +153,11 @@ supabase/
 - Pas de `any` en TypeScript -- utiliser `unknown` si necessaire
 
 ### Style
+- **`docs/charte-graphique.md` fait foi** pour toutes les valeurs visuelles (couleurs, tailles, graisses, rayons, hauteurs)
+- **Theme sombre unique** : pas de mode clair, pas de bouton de bascule
+- Aucune couleur en dur dans les composants : tout passe par les jetons de `src/index.css`
+- Hierarchie par la graisse et la couleur du texte, filets de 1 px plutot que cartes arrondies
+- La couleur est reservee aux statuts de reservation
 - Tailwind CSS uniquement, pas de fichiers CSS separes sauf cas exceptionnel
 - Pas de librairie de composants UI prefabriquee (pas de Material UI, Ant Design, shadcn, etc.)
 
@@ -183,10 +188,11 @@ supabase/
 - Pas de colonne `remaining_amount` -- calcule cote client : `total_amount - paid_amount`
 
 ### Statuts de reservation (3 valeurs uniquement)
-- `pending_contract` -> rouge (#E24B4A, texte #791F1F, fond #FCEBEB) -- "Contrat en attente"
-- `pending_deposit` -> orange (#EF9F27, texte #854F0B, fond #FAEEDA) -- "Acompte en attente"
-- `deposit_paid` -> vert (#5DCAA5, texte #085041, fond #E1F5EE) -- "Acompte paye"
-- Mapping centralise dans `constants/statuses.ts` et `utils/status.ts`
+- `pending_contract` -> rouge -- "Contrat en attente"
+- `pending_deposit` -> orange -- "Acompte en attente"
+- `deposit_paid` -> vert -- "Acompte paye"
+- Valeurs de couleur : voir `docs/charte-graphique.md`, qui fait foi (oklch, meme luminosite et chroma, seule la teinte change)
+- Mapping centralise dans `constants/statuses.ts`
 
 ### Contrats (PDF + images)
 - Stockes dans le bucket Supabase Storage `contracts` sous `contracts/{uuid}.{ext}` ou `ext` ∈ {`pdf`, `jpg`, `png`} (UUID genere a l'upload, pas le nom utilisateur ; extension derivee du type MIME, pas du nom original)
@@ -253,5 +259,5 @@ supabase/
 - **Ajouter un gite** : INSERT dans `gites` (via migration ou SQL direct), un onglet apparait automatiquement dans `TabBar.tsx` si la liste est chargee dynamiquement
 - **Ajouter un statut** : ajouter dans `constants/statuses.ts` + migration SQL pour la contrainte CHECK
 - **Ajouter un champ a la reservation** : migration SQL + regenerer les types + ajouter dans le schema zod et dans `ReservationForm.tsx`
-- **Changer les couleurs** : modifier `constants/statuses.ts` et/ou `tailwind.config.js`
+- **Changer les couleurs** : modifier les jetons dans `src/index.css` (palette globale) et/ou `src/constants/statuses.ts` (couleurs de statut), puis mettre a jour `docs/charte-graphique.md`
 - **Changer les textes FR** : modifier `constants/labels.ts`

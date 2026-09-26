@@ -15,7 +15,10 @@ Utilisateurs : Johan (Djo) et Quentin (Coltan), avec droits identiques.
 | [03-modele-donnees.md](./03-modele-donnees.md) | Schema de la base de donnees |
 | [04-plan-developpement.md](./04-plan-developpement.md) | Etapes de developpement |
 | [05-decisions-a-trancher.md](./05-decisions-a-trancher.md) | Decisions finales, contenus FR, messages d'erreur, reference maquettes |
+| [charte-graphique.md](./charte-graphique.md) | Charte graphique (theme sombre) -- fait foi pour toutes les valeurs visuelles |
 | [maquettes-gites.html](./maquettes-gites.html) | Maquettes HTML des 4 vues principales |
+| [maquette-calendrier-sombre.html](./maquette-calendrier-sombre.html) | Maquette sombre du calendrier et de la fiche reservation (reference de rendu) |
+| [contrats/](./contrats/) | Contrats types PDF de Johan (Le Vallon, La Salmoniere), reference pour l'etape 11 Generation de contrat |
 | [directives/](./directives/) | Directives detaillees a transmettre a Claude Code, une par etape de developpement |
 | [CLAUDE.md](../CLAUDE.md) | Instructions pour Claude Code (a la racine du projet) |
 
@@ -75,7 +78,7 @@ Modele revise le 2026-06-04 (decision 49, voir SESSION_MEMORY.md) : rien n'est c
 ## Evolutions futures (hors v1)
 
 Si besoin, ces fonctionnalites pourront etre ajoutees dans une v2 :
-- Generation automatique de contrats
+- ~~Generation automatique de contrats~~ (promue en etape 11 le 2026-07-13, cadree le 2026-08-07 -- decisions 60 et 61)
 - Envoi d'emails automatiques aux clients
 - Integration Airbnb / Booking
 - Systeme de reservation cote client (externe)
