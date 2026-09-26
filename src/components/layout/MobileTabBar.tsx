@@ -24,10 +24,10 @@ export default function MobileTabBar({
 
   const isCalendar = pathname.startsWith('/calendar')
   const isReservations = pathname.startsWith('/reservations')
-  const isFinances = pathname.startsWith('/finances')
+  const isInvoices = pathname.startsWith('/invoices')
   // "Plus" stays lit while one of the screens it opens is displayed
   const isMore =
-    moreOpen || pathname.startsWith('/invoices') || pathname.startsWith('/export')
+    moreOpen || pathname.startsWith('/finances') || pathname.startsWith('/export')
 
   const calendarPath = currentGiteId ? `/calendar/${currentGiteId}` : '/'
   const newPath = currentGiteId
@@ -68,10 +68,10 @@ export default function MobileTabBar({
 
       <button
         type="button"
-        className={`${slotClass} ${isFinances ? activeClass : idleClass}`}
-        onClick={() => navigate('/finances')}
+        className={`${slotClass} ${isInvoices ? activeClass : idleClass}`}
+        onClick={() => navigate('/invoices')}
       >
-        {LABELS.finances}
+        {LABELS.factures}
       </button>
       <button
         type="button"

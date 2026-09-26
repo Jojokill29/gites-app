@@ -51,8 +51,8 @@ export default function MoreSheet({
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button type="button" className={rowClass} onClick={() => go('/invoices')}>
-          {LABELS.factures}
+        <button type="button" className={rowClass} onClick={() => go('/finances')}>
+          {LABELS.finances}
         </button>
         <button type="button" className={rowClass} onClick={() => go('/export')}>
           {LABELS.export}
