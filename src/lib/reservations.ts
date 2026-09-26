@@ -56,7 +56,7 @@ export async function persistReservation({
     guest_count: data.guest_count ?? null,
     linen_sets_single: data.linen_sets_single ?? null,
     linen_sets_double: data.linen_sets_double ?? null,
-    total_amount: data.total_amount,
+    total_amount: data.total_amount ?? null,
     paid_amount: data.paid_amount,
     status: data.status,
     notes: data.notes,

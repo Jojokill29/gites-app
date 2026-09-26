@@ -29,8 +29,17 @@ export const reservationSchema = z
       (v) => (v === '' || v === null || Number.isNaN(v) ? undefined : v),
       z.coerce.number().int().nonnegative('Doit être positif ou nul.').optional(),
     ),
-    total_amount: z.number({ message: 'Obligatoire.' }).min(0, 'Doit être positif ou nul.'),
-    paid_amount: z.number({ message: 'Obligatoire.' }).min(0, 'Doit être positif ou nul.'),
+    // Optional: a reservation can be created before the price is known.
+    // Empty field -> undefined -> NULL in the database.
+    total_amount: z.preprocess(
+      (v) => (v === '' || v === null || Number.isNaN(v) ? undefined : v),
+      z.coerce.number().nonnegative('Doit être positif ou nul.').optional(),
+    ),
+    // Emptying the field means "nothing paid yet", not an error.
+    paid_amount: z.preprocess(
+      (v) => (v === '' || v === null || Number.isNaN(v) ? 0 : v),
+      z.coerce.number().nonnegative('Doit être positif ou nul.'),
+    ),
     status: z.enum(['pending_contract', 'pending_deposit', 'deposit_paid']),
     notes: z.string().nullable(),
   })
@@ -38,7 +47,8 @@ export const reservationSchema = z
     message: "La date de départ doit être postérieure à la date d'arrivée.",
     path: ['end_date'],
   })
-  .refine((d) => d.paid_amount <= d.total_amount, {
+  // Only meaningful when a total was entered: without it there is nothing to exceed.
+  .refine((d) => d.total_amount === undefined || d.paid_amount <= d.total_amount, {
     message: 'Le montant payé ne peut pas dépasser le montant total.',
     path: ['paid_amount'],
   })
@@ -53,7 +63,7 @@ export type ReservationFormData = {
   guest_count?: number
   linen_sets_single?: number
   linen_sets_double?: number
-  total_amount: number
+  total_amount?: number
   paid_amount: number
   status: 'pending_contract' | 'pending_deposit' | 'deposit_paid'
   notes: string | null
@@ -74,7 +84,8 @@ export function buildDefaultValues(
       guest_count: reservation.guest_count ?? undefined,
       linen_sets_single: reservation.linen_sets_single ?? undefined,
       linen_sets_double: reservation.linen_sets_double ?? undefined,
-      total_amount: Number(reservation.total_amount),
+      total_amount:
+        reservation.total_amount === null ? undefined : Number(reservation.total_amount),
       paid_amount: Number(reservation.paid_amount),
       status: reservation.status,
       notes: reservation.notes,
@@ -90,7 +101,7 @@ export function buildDefaultValues(
     linen_sets_single: undefined,
     linen_sets_double: undefined,
     // Left empty on purpose: the field must start blank, not at 0
-    total_amount: undefined as unknown as number,
+    total_amount: undefined,
     paid_amount: 0,
     status: 'pending_contract',
     notes: null,
