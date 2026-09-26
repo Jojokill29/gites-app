@@ -25,9 +25,29 @@ const inputClass =
   'w-full px-2.5 py-2 text-[14px] text-text bg-bg border border-border-input rounded-md placeholder:text-text-muted focus:outline-none focus:border-focus'
 const labelClass = 'block text-[13px] text-text-secondary mb-1.5'
 
+function EyeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  )
+}
+
+function EyeOffIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 4l16 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M9.9 5.7A10.6 10.6 0 0 1 12 5.5c6.4 0 10 6.5 10 6.5a18 18 0 0 1-3 3.8M6.5 8.2A17.6 17.6 0 0 0 2 12s3.6 6.5 10 6.5c1 0 1.9-.1 2.7-.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 export default function LoginPage({ onLogin }: LoginPageProps) {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
@@ -41,7 +61,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setError(null)
     setSubmitting(true)
     try {
-      await onLogin(data.email, data.password)
+      // Phone keyboards happily add a capital or a trailing space to an email
+      await onLogin(data.email.trim().toLowerCase(), data.password)
     } catch {
       setError(LABELS.errorLogin)
     } finally {
@@ -65,6 +86,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               id="email"
               type="email"
               autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               {...register('email')}
               className={inputClass}
             />
@@ -77,13 +101,23 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <label htmlFor="password" className={labelClass}>
               {LABELS.password}
             </label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              {...register('password')}
-              className={inputClass}
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                {...register('password')}
+                className={`${inputClass} pr-10`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? LABELS.hidePassword : LABELS.showPassword}
+                className="absolute right-0 top-0 h-full px-2.5 flex items-center text-text-tertiary hover:text-text cursor-pointer"
+              >
+                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
             {errors.password && (
               <p className="mt-1 text-[12px] text-status-red-text">{errors.password.message}</p>
             )}

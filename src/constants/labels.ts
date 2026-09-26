@@ -10,6 +10,8 @@ export const LABELS = {
   email: 'Adresse email',
   password: 'Mot de passe',
   forgotPassword: 'Mot de passe oublié ?',
+  showPassword: 'Afficher le mot de passe',
+  hidePassword: 'Masquer le mot de passe',
   loginLoading: 'Connexion en cours...',
   connectedAs: 'Connecté :',
 
